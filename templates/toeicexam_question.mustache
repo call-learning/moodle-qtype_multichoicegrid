@@ -1,0 +1,57 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template qtype_toeicexam/toeicexam_question
+
+    The question to display
+
+    Example context (json):
+    {
+        "pdffileurl": "http://documenturl"
+        "audiofileurl": "http://audiofileurl",
+        "questions" : [
+            { "answers": [{"label":"A", "value":1, "selected": true}, {"label":"B", "value":2}, {"label":"C", "value":3}, {"label":"D", "id":4}], "feedback": "myfeedback", "id": "myfirstinputid"}
+            { "answers": [{"label":"A", "value":1}, {"label":"B", "value":2}, {"label":"C", "value":3}, {"label":"D", "id":4}], "feedback": "myfeedback", "id": "mysecondinputid"}
+        ]
+    }
+}}
+<div class="toeicexam_question">
+    <div class="d-flex">
+        <div class="flex-grow-1">
+            <div class="documentpdf h-100">
+            <object class="h-100" id="qtype_toeicexam-documentobject-{{uniqid}}" data="{{pdffileurl}}" type="application/pdf" width="100%" >
+                <param name="src" value="{{pdffileurl}}" />
+            </object>
+        </div>
+        </div>
+        <div class="w-25">
+            <audio class="m-auto" controls src="{{audiofileurl}}"></audio>
+            <ol style="columns: 2 auto">
+                {{#questions}}
+                    <li class="m-auto">
+                    {{#answers}}
+                        <label class="label">
+                            <input class="input" type="radio" value="{{value}}" id="{{id}}" {{#selected}}checked{{/selected}}>
+                            {{label}}
+                        </label>
+                    {{/answers}}
+                    </li>
+                {{/questions}}
+            </ol>
+        </div>
+    </div>
+</div>

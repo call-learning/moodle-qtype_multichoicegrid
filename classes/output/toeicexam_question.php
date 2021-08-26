@@ -22,6 +22,8 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace qtype_toeicexam\output;
+use moodle_url;
+use qtype_toeicexam\utils;
 use question_attempt;
 use question_display_options;
 use renderable;
@@ -56,6 +58,26 @@ class toeicexam_question implements renderable, templatable {
         $data = new stdClass();
         $data->pdffileurl = self::get_url_for_document($this->qa, 'document');
         $data->audiofileurl = self::get_url_for_document($this->qa, 'audiofile');
+        $question = $this->qa->get_question();
+        $responses = $this->qa->get_last_qt_var('answer', '');
+        $data->questions = [];
+        foreach ($question->answers as $value => $answer) {
+            $aquestion = new stdClass();
+            $aquestion->answers = [];
+            $aquestion->feedback = $answer->feedback;
+            for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
+                $ananswer = new stdClass();
+                $ananswer->label = get_string('option:' . $i, 'qtype_toeicexam');
+                $ananswer->value = $i;
+                $aquestion->answers[] = $ananswer;
+
+                $aquestion->id =  $this->qa->get_qt_field_name('choice' . $value);
+
+            }
+            $aquestion->id =  $this->qa->get_qt_field_name($value);
+            //$isselected = $question->is_choice_selected($response, $value);
+            $data->questions[] = $aquestion;
+        }
         return $data;
     }
 

@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die();
  * You should override functions as necessary from the parent class located at
  * /question/type/rendererbase.php.
  */
-class qtype_toeicexam_renderer extends qtype_renderer {
+class renderer extends qtype_renderer {
 
     /**
      * Generates the display of the formulation part of the question. This is the

@@ -64,7 +64,9 @@ class qtype_toeicexam_question extends question_graded_automatically {
      * @return bool True if the user can access this file.
      */
     public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) {
-        return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload);
+        $isdocument = $component == 'qtype_toeicexam' && $filearea == 'audiofile' && $args[0] == $this->id;
+        $isaudio = $component == 'qtype_toeicexam' && $filearea == 'document' && $args[0] == $this->id;
+        return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) || $isdocument || $isaudio;
     }
 
     public function is_complete_response(array $response) {

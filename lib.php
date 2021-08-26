@@ -36,7 +36,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param bool $forcedownload whether the user must be forced to download the file.
  * @param array $options additional options affecting the file serving
  */
-function qtype_ddimageortext_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function qtype_toeicexam_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
     global $CFG;
     require_once($CFG->libdir . '/questionlib.php');
     question_pluginfile($course, $context, 'qtype_toeicexam', $filearea, $args, $forcedownload, $options);

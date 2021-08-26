@@ -32,10 +32,6 @@ defined('MOODLE_INTERNAL') || die();
  */
 class qtype_toeicexam_edit_form extends question_edit_form {
 
-    const OPTION_COUNT = 5;
-
-    const BASE_ANSWER_COUNT = 100;
-
     /**
      * Add question-type specific form fields.
      *
@@ -43,7 +39,7 @@ class qtype_toeicexam_edit_form extends question_edit_form {
      */
     protected function definition_inner($mform) {
 
-        foreach(array('audiofile', 'document') as $item) {
+        foreach (array('audiofile', 'document') as $item) {
             $mform->addElement('filepicker', $item,
                 get_string($item, 'qtype_toeicexam'),
                 null,
@@ -52,17 +48,16 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         }
         raise_memory_limit(MEMORY_EXTRA);
         $this->add_per_answer_fields($mform, get_string('answer', 'qtype_toeicexam', '{no}'),
-            question_bank::fraction_options_full(), self::BASE_ANSWER_COUNT);
+            question_bank::fraction_options_full(), \qtype_toeicexam\utils::BASE_ANSWER_COUNT);
         raise_memory_limit(MEMORY_STANDARD);
     }
-
 
     protected function data_preprocessing($question) {
         $question = parent::data_preprocessing($question);
         $question = $this->data_preprocessing_answers($question, false);
         $question = $this->data_preprocessing_hints($question, true, true);
 
-        foreach(array('audiofile', 'document') as $item) {
+        foreach (array('audiofile', 'document') as $item) {
             $draftitemid = file_get_submitted_draft_itemid($item);
             file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_toeicexam',
                 $item, !empty($question->id) ? (int) $question->id : null,
@@ -73,10 +68,9 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         return $question;
     }
 
-
     const FILEPICKER_OPTIONS = [
         'audiofile' => array('accepted_types' => 'web_audio'),
-        'document' =>    array('accepted_types' => 'pdf'),
+        'document' => array('accepted_types' => 'pdf'),
     ];
 
     /**
@@ -87,6 +81,7 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         return self::FILEPICKER_OPTIONS[$type];
 
     }
+
     /**
      * Get a single row of answers
      *
@@ -104,7 +99,7 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         $radioarray = array();
         // Answer 'answer' is a key in saving the question (see {@link save_question_answers()}).
         // Same for feedback.
-        for ($i = 1; $i < self::OPTION_COUNT; $i++) {
+        for ($i = 1; $i <= \qtype_toeicexam\utils::OPTION_COUNT; $i++) {
             $radioarray[] = $mform->createElement('radio', 'answer', '', get_string('option:' . $i, 'qtype_toeicexam'), $i);
         }
         $repeated[] =
