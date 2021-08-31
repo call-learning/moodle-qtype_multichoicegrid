@@ -21,8 +21,8 @@
 
     Example context (json):
     {
-        "pdffileurl": "http://documenturl"
-        "audiofileurl": "http://audiofileurl",
+        "pdffiles": [{"url" : "http://documentfileurl"},{"url" : "http://documentfileurl2"}]
+        "audiofiles": [{"url" : "http://audiofileurl"},{"url" : "http://audiofileurl2"}]
         "questions" : [
             { "answers": [{"label":"A", "value":1, "selected": true}, {"label":"B", "value":2}, {"label":"C", "value":3}, {"label":"D", "id":4}], "feedback": "myfeedback", "id": "myfirstinputid"}
             { "answers": [{"label":"A", "value":1}, {"label":"B", "value":2}, {"label":"C", "value":3}, {"label":"D", "id":4}], "feedback": "myfeedback", "id": "mysecondinputid"}
@@ -30,28 +30,51 @@
     }
 }}
 <div class="toeicexam_question">
-    <div class="d-flex">
-        <div class="flex-grow-1">
-            <div class="documentpdf h-100">
-            <object class="h-100" id="qtype_toeicexam-documentobject-{{uniqid}}" data="{{pdffileurl}}" type="application/pdf" width="100%" >
-                <param name="src" value="{{pdffileurl}}" />
-            </object>
+    <div class="row">
+        <div class="col">
+            <div class="documentpdf">
+                {{#pdffiles}}
+                    <object class="min-vh-100" data="{{url}}" type="application/pdf" width="100%">
+                        <param name="src" value="{{url}}"/>
+                    </object>
+                {{/pdffiles}}
+            </div>
         </div>
-        </div>
-        <div class="w-25">
-            <audio class="m-auto" controls src="{{audiofileurl}}"></audio>
-            <ol style="columns: 2 auto">
-                {{#questions}}
-                    <li class="m-auto">
-                    {{#answers}}
-                        <label class="label">
-                            <input class="input" type="radio" value="{{value}}" id="{{id}}" {{#selected}}checked{{/selected}}>
-                            {{label}}
-                        </label>
-                    {{/answers}}
-                    </li>
-                {{/questions}}
-            </ol>
+        <div class="col-4">
+            <div>
+                {{#audiofiles}}
+                    <audio class="m-auto" controls src="{{url}}"></audio>
+                {{/audiofiles}}
+            </div>
+            <div class="pt-3">
+                <table class="columns-autoflow-1to1to1">
+                    <thead>
+                    <tr>
+                        <td>#</td>
+                        {{#possibleanswers}}
+                            <th>{{.}}</th>
+                        {{/possibleanswers}}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#questions}}
+                        <tr class="m-auto">
+                            <td>
+                                {{index}}.
+                            </td>
+                            {{#answers}}
+                                <td>
+                                    <label class="label">
+                                        <input class="input" type="radio" value="{{value}}" name="{{id}}" {{#selected}}checked{{/selected}}>
+                                        <span class="sr-only">{{label}}</span>
+                                    </label>
+                                </td>
+                            {{/answers}}
+                        </tr>
+                    {{/questions}}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

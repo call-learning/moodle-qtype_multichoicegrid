@@ -29,8 +29,11 @@ $string['pluginname'] = 'TOEIC Exam';
 $string['pluginname_help'] = 'TOEIC Exam type of question with audio and pdf file';
 $string['pluginnameediting'] = 'Editing a TOEIC Exam question';
 $string['pluginnameadding'] = 'Adding a TOEIC Exam question';
-$string['audiofile'] =  'Audio file';
-$string['document'] =  'Document';
+$string['pluginname_link'] = 'question/type/toeicexam';
+$string['pluginnamesummary'] = 'TOEIC Exam type of question are used to simulate a real TOEIC exam.';
+
+$string['audiofiles'] =  'Audio files';
+$string['documents'] =  'Documents';
 
 $string['answerheader'] =  'Answers';
 $string['numberofanswers'] =  'Number of answers';

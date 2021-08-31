@@ -21,7 +21,9 @@
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace qtype_toeicexam\output;
+
 use moodle_url;
 use qtype_toeicexam\utils;
 use question_attempt;
@@ -54,28 +56,40 @@ class toeicexam_question implements renderable, templatable {
         $this->qa = $qa;
         $this->options = $options;
     }
+
     public function export_for_template(\renderer_base $output) {
         $data = new stdClass();
-        $data->pdffileurl = self::get_url_for_document($this->qa, 'document');
-        $data->audiofileurl = self::get_url_for_document($this->qa, 'audiofile');
+        $pdffilesurls = iterator_to_array(self::get_url_for_document($this->qa, 'documents'));
+        $audiofilesurl = iterator_to_array(self::get_url_for_document($this->qa, 'audiofiles'));
+        $tofileurlobjects = function($fileurl) {
+            return (object) ['url' => $fileurl];
+        };
+        $data->possibleanswers = [];
+        for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
+            $data->possibleanswers[] = get_string('option:' . $i, 'qtype_toeicexam');
+        }
+        $data->pdffiles = array_map($tofileurlobjects, $pdffilesurls);
+        $data->audiofiles = array_map($tofileurlobjects, $audiofilesurl);
         $question = $this->qa->get_question();
-        $responses = $this->qa->get_last_qt_var('answer', '');
         $data->questions = [];
-        foreach ($question->answers as $value => $answer) {
+        $index = 1;
+        foreach ($question->answers as $answerid => $answer) {
             $aquestion = new stdClass();
             $aquestion->answers = [];
             $aquestion->feedback = $answer->feedback;
+            $aquestion->index = $index++;
+            $aquestion->id = $this->qa->get_qt_field_name('answer' . $answerid);
+            $response = $this->qa->get_last_qt_var('answer' . $answerid, '');
             for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
                 $ananswer = new stdClass();
                 $ananswer->label = get_string('option:' . $i, 'qtype_toeicexam');
                 $ananswer->value = $i;
+                if ($response == $i) {
+                    $ananswer->selected = true;
+                }
                 $aquestion->answers[] = $ananswer;
 
-                $aquestion->id =  $this->qa->get_qt_field_name('choice' . $value);
-
             }
-            $aquestion->id =  $this->qa->get_qt_field_name($value);
-            //$isselected = $question->is_choice_selected($response, $value);
             $data->questions[] = $aquestion;
         }
         return $data;
@@ -106,9 +120,8 @@ class toeicexam_question implements renderable, templatable {
                 $url = moodle_url::make_pluginfile_url($question->contextid, $componentname,
                     $filearea, "$qubaid/$slot/{$itemid}", '/',
                     $file->get_filename());
-                return $url->out();
+                yield $url->out();
             }
         }
-        return null;
     }
 }

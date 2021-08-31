@@ -34,13 +34,29 @@ defined('MOODLE_INTERNAL') || die();
  */
 class qtype_toeicexam_question extends question_graded_automatically {
 
+    public $answers = null;
+
+    /**
+     * returns string of place key value prepended with p, i.e. p0 or p1 etc
+     *
+     * @param int $key stem number
+     * @return string the question-type variable name.
+     */
+    public function field($key) {
+        return 'answer' . $key;
+    }
+
     /**
      * Returns data to be included in the form submission.
      *
      * @return array|string.
      */
     public function get_expected_data() {
-        return array();
+        $data = [];
+        foreach (array_keys($this->answers) as $key) {
+            $data['answer' . $key] = PARAM_INT;
+        }
+        return $data;
     }
 
     /**
@@ -49,7 +65,11 @@ class qtype_toeicexam_question extends question_graded_automatically {
      * @return array|null Null if it is not possible to compute a correct response.
      */
     public function get_correct_response() {
-        return null;
+        $response = array();
+        foreach ($this->answers as $key => $answer) {
+            $response[$this->field($key)] = $answer->answer;
+        }
+        return $response;
     }
 
     /**
@@ -64,13 +84,18 @@ class qtype_toeicexam_question extends question_graded_automatically {
      * @return bool True if the user can access this file.
      */
     public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) {
-        $isdocument = $component == 'qtype_toeicexam' && $filearea == 'audiofile' && $args[0] == $this->id;
-        $isaudio = $component == 'qtype_toeicexam' && $filearea == 'document' && $args[0] == $this->id;
+        $isdocument = $component == 'qtype_toeicexam' && $filearea == 'audiofiles' && $args[0] == $this->id;
+        $isaudio = $component == 'qtype_toeicexam' && $filearea == 'documents' && $args[0] == $this->id;
         return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) || $isdocument || $isaudio;
     }
 
-    public function is_complete_response(array $response) {
-        // TODO: Implement is_complete_response() method.
+    public function is_complete_response(array $responses) {
+        $iscomplete = true;
+        foreach (array_keys($this->answers) as $answerkey) {
+            $fieldname = $this->field($answerkey);
+            $iscomplete = $iscomplete && !empty($responses[$fieldname]);
+        }
+        return $iscomplete;
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
@@ -85,7 +110,18 @@ class qtype_toeicexam_question extends question_graded_automatically {
         // TODO: Implement get_validation_error() method.
     }
 
-    public function grade_response(array $response) {
-        // TODO: Implement grade_response() method.
+    public function grade_response(array $responses) {
+        $totalscore = 0;
+        foreach (array_keys($this->answers) as $answerkey) {
+            $fieldname = $this->field($answerkey);
+            if (empty($responses[$fieldname])) {
+                continue;
+            }
+            $rightanswer = $this->answers[$answerkey]->answer;
+            $isrightvalue = ($responses[$fieldname] == $rightanswer) ? 1 : 0;
+            $totalscore += $isrightvalue;
+        }
+        $fraction = $totalscore / count(array_keys($this->answers));
+        return array($fraction, question_state::graded_state_for_fraction($fraction));
     }
 }

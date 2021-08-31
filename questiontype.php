@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/questionlib.php');
+require_once($CFG->libdir . '/questionlib.php');
 
 /**
  * Class that represents a toeicexam question type.
@@ -42,12 +42,12 @@ class qtype_toeicexam extends question_type {
         parent::save_question_options($question);
         $this->save_question_answers($question);
         $this->save_hints($question);
-        file_save_draft_area_files($question->audiofile, $question->context->id,
-            'qtype_toeicexam', 'audiofile', $question->id,
-            array('subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => 1));
-        file_save_draft_area_files($question->document, $question->context->id,
-            'qtype_toeicexam', 'document', $question->id,
-            array('subdirs' => 0, 'maxbytes' => 0, 'maxfiles' => 1));
+        file_save_draft_area_files($question->audiofiles, $question->context->id,
+            'qtype_toeicexam', 'audiofiles', $question->id,
+            \qtype_toeicexam\utils::file_manager_options('audiofiles'));
+        file_save_draft_area_files($question->documents, $question->context->id,
+            'qtype_toeicexam', 'documents', $question->id,
+            \qtype_toeicexam\utils::file_manager_options('documents'));
     }
 
     protected function initialise_question_instance(question_definition $question, $questiondata) {
