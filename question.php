@@ -106,8 +106,22 @@ class qtype_toeicexam_question extends question_graded_automatically {
         // TODO: Implement summarise_response() method.
     }
 
+
+    /**
+     * A question is gradable if at least one gap response is not blank
+     *
+     * @param array $response
+     * @return boolean
+     */
+    public function is_gradable_response(array $response) {
+        return $this->is_complete_response($response);
+    }
+
     public function get_validation_error(array $response) {
-        // TODO: Implement get_validation_error() method.
+        if ($this->is_complete_response($response)) {
+            return '';
+        }
+        return get_string('pleasedraganimagetoeachdropregion', 'qtype_ddimageortext');
     }
 
     public function grade_response(array $responses) {

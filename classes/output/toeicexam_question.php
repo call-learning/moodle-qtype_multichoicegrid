@@ -52,9 +52,12 @@ class toeicexam_question implements renderable, templatable {
      */
     private question_display_options $options;
 
-    public function __construct(question_attempt $qa, question_display_options $options) {
+    private array $truefaldisplayoptions;
+
+    public function __construct(question_attempt $qa, question_display_options $options, array $truefaldisplayoptions) {
         $this->qa = $qa;
         $this->options = $options;
+        $this->truefaldisplayoptions = $truefaldisplayoptions;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -78,18 +81,30 @@ class toeicexam_question implements renderable, templatable {
             $aquestion->answers = [];
             $aquestion->feedback = $answer->feedback;
             $aquestion->index = $index++;
-            $aquestion->id = $this->qa->get_qt_field_name('answer' . $answerid);
-            $response = $this->qa->get_last_qt_var('answer' . $answerid, '');
+            $answerkey = 'answer' . $answerid;
+            $aquestion->id = $this->qa->get_qt_field_name($answerkey);
+            $response = $this->qa->get_last_qt_var($answerkey, '');
+            $iscorrect = false;
             for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
                 $ananswer = new stdClass();
                 $ananswer->label = get_string('option:' . $i, 'qtype_toeicexam');
                 $ananswer->value = $i;
                 if ($response == $i) {
                     $ananswer->selected = true;
+                    $iscorrect = ($response == $answer->answer) ? 1 : 0;
+                }
+                if ($this->options->correctness) {
+                     $isrightvalue = ($response == $answer->answer) ? 1 : 0;
+                     $ananswer->additionalclass = $this->truefaldisplayoptions[$isrightvalue]->additionalclass;
+
                 }
                 $aquestion->answers[] = $ananswer;
 
             }
+            if ($this->options->correctness) {
+                $ananswer->feedbackimage = $this->truefaldisplayoptions[$iscorrect]->image;
+            }
+
             $data->questions[] = $aquestion;
         }
         return $data;

@@ -47,7 +47,15 @@ class renderer extends qtype_renderer {
      * @return string HTML fragment.
      */
     public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
-        return $this->render(new toeicexam_question($qa, $options));
+        $truefalsedisplayinfo = [];
+        foreach([true, false] as $value) {
+            $truefalsedisplayinfo[$value] = (object) [
+                'image' => $this->feedback_image((int) $value),
+                'additionalclass' => ' ' . $this->feedback_class((int) $value),
+            ];
+        }
+
+        return $this->render(new toeicexam_question($qa, $options, $truefalsedisplayinfo));
     }
 
     /**

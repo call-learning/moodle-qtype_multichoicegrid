@@ -65,9 +65,10 @@
                             {{#answers}}
                                 <td>
                                     <label class="label">
-                                        <input class="input" type="radio" value="{{value}}" name="{{id}}" {{#selected}}checked{{/selected}}>
+                                        <input class="input {{additionalclass}}" type="radio" value="{{value}}" name="{{id}}" {{#selected}}checked{{/selected}}>
                                         <span class="sr-only">{{label}}</span>
                                     </label>
+                                    {{{feedbackimage}}}
                                 </td>
                             {{/answers}}
                         </tr>
