@@ -41,6 +41,10 @@ class utils {
         'documents' => array('accepted_types' => 'pdf', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0)
     ];
 
+    const FILE_AREAS = [
+        'audiofiles',
+        'documents'
+    ];
     /**
      * @param $type
      * @return string[]

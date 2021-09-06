@@ -99,43 +99,137 @@ class qtype_toeicexam_question extends question_graded_automatically {
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
-        // TODO: Implement is_same_response() method.
+        $same = true;
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $aprevresponse = $this->get_response_value($answerkey, $prevresponse);
+            $anewresponse = $this->get_response_value($answerkey, $newresponse);
+            $same = $same && (
+                (empty($aprevresponse) && empty($anewresponse)) || $aprevresponse == $anewresponse);
+        }
+        return $same;
     }
 
     public function summarise_response(array $response) {
-        // TODO: Implement summarise_response() method.
+        $textresponses = [];
+        $index = 1;
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $currentresponse = $this->get_response_value($answerkey, $response);
+            if (is_null($currentresponse)) {
+                continue;
+            }
+            $answertypetext = get_string('option:' . $currentresponse, 'qtype_toeicexam');
+            $textresponses[] = "{$index} -> $answertypetext";
+            $index++;
+        }
+        return implode(', ', $textresponses);
     }
 
-
     /**
-     * A question is gradable if at least one gap response is not blank
+     * A question is gradable if at least one answer
      *
      * @param array $response
      * @return boolean
      */
     public function is_gradable_response(array $response) {
-        return $this->is_complete_response($response);
+        foreach (array_keys($this->answers) as $answerkey) {
+            if (!empty($response[$this->field($answerkey)])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function get_validation_error(array $response) {
-        if ($this->is_complete_response($response)) {
+        if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('pleasedraganimagetoeachdropregion', 'qtype_ddimageortext');
+        return get_string('pleasechoseatleastananswer', 'qtype_toeicexam');
     }
 
     public function grade_response(array $responses) {
-        $totalscore = 0;
-        foreach (array_keys($this->answers) as $answerkey) {
-            $fieldname = $this->field($answerkey);
-            if (empty($responses[$fieldname])) {
+        $totalscore = 0.0;
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $currentresponse = $this->get_response_value($answerkey, $responses);
+            if (is_null($currentresponse)) {
                 continue;
             }
-            $rightanswer = $this->answers[$answerkey]->answer;
-            $isrightvalue = ($responses[$fieldname] == $rightanswer) ? 1 : 0;
+            $isrightvalue = ($currentresponse == $answerinfo->answer) ? 1 : 0;
             $totalscore += $isrightvalue;
         }
-        $fraction = $totalscore / count(array_keys($this->answers));
+        $fraction = $totalscore / count($this->answers);
         return array($fraction, question_state::graded_state_for_fraction($fraction));
+    }
+
+    /**
+     * Given a response, reset the parts that are wrong.
+     * @param array $response a response
+     * @return array a cleaned up response with the wrong bits reset.
+     */
+    public function clear_wrong_from_response(array $response) {
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $currentresponse = $this->get_response_value($answerkey, $response);
+            if (is_null($currentresponse)) {
+                continue;
+            }
+            $isrightvalue = ($currentresponse == $answerinfo->answer) ? 1 : 0;
+            if (!$isrightvalue) {
+                $fieldname = $this->field($answerkey);
+                unset($response[$fieldname]);
+            }
+        }
+        return $response;
+    }
+
+    /**
+     * Return the number of subparts of this response that are right.
+     * @param array $response a response
+     * @return array with two elements, the number of correct subparts, and
+     * the total number of subparts.
+     */
+    public function get_num_parts_right(array $response) {
+        $rightcount = 0;
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $currentresponse = $this->get_response_value($answerkey, $response);
+            if (is_null($currentresponse)) {
+                continue;
+            }
+            $rightcount += ($currentresponse == $answerinfo->answer) ? 1 : 0;
+        }
+        return array($rightcount, count($this->answers));
+    }
+
+
+    public function compute_final_grade($responses, $totaltries) {
+        $totalscore = 0;
+        foreach ($this->answers as $answerkey => $answerinfo) {
+            $lastwrongindex = -1;
+            $finallyright = false;
+            foreach ($responses as $i => $response) {
+                $currentresponse = $this->get_response_value($answerkey, $response);
+                if (($currentresponse != $answerinfo->answer)) {
+                    $lastwrongindex = $i;
+                    $finallyright = false;
+                } else {
+                    $finallyright = true;
+                }
+            }
+
+            if ($finallyright) {
+                $totalscore += max(0, 1 - ($lastwrongindex + 1) * $this->penalty);
+            }
+        }
+        return $totalscore / count($this->answers);
+
+    }
+
+    /**
+     * Get response value from key
+     *
+     * @param $answerkey
+     * @return mixed|null
+     */
+    protected function get_response_value($answerkey, $responses) {
+        $fieldname = $this->field($answerkey);
+        return empty($responses[$fieldname]) ? null : $responses[$fieldname];
     }
 }

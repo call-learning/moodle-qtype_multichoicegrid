@@ -40,8 +40,9 @@ class qtype_toeicexam_edit_form extends question_edit_form {
      * @param MoodleQuickForm $mform the form being built.
      */
     protected function definition_inner($mform) {
+        $this->add_interactive_settings(true, true);
 
-        foreach (array('audiofiles', 'documents') as $item) {
+        foreach (utils::FILE_AREAS as $item) {
             $mform->addElement('filemanager', $item,
                 get_string($item, 'qtype_toeicexam'),
                 null,
@@ -60,7 +61,7 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         $question = $this->data_preprocessing_answers($question, false);
         $question = $this->data_preprocessing_hints($question, true, true);
 
-        foreach (array('audiofiles', 'documents') as $item) {
+        foreach (utils::FILE_AREAS as $item) {
             $draftitemid = file_get_submitted_draft_itemid($item);
             file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_toeicexam',
                 $item, !empty($question->id) ? (int) $question->id : null,
