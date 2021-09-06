@@ -17,7 +17,7 @@
 /**
  * Plugin strings are defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @category    string
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,23 +25,24 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'TOEIC Exam';
-$string['pluginname_help'] = 'TOEIC Exam type of question with audio and pdf file';
-$string['pluginnameediting'] = 'Editing a TOEIC Exam question';
-$string['pluginnameadding'] = 'Adding a TOEIC Exam question';
-$string['pluginname_link'] = 'question/type/toeicexam';
-$string['pluginnamesummary'] = 'TOEIC Exam type of question are used to simulate a real TOEIC exam.';
+$string['pluginname'] = 'Multiple Choice Grid';
+$string['pluginname_help'] = 'Multiple Choice Grid type of question with audio and pdf file';
+$string['pluginnameediting'] = 'Editing a Multiple Choice Grid question';
+$string['pluginnameadding'] = 'Adding a Multiple Choice Grid question';
+$string['pluginname_link'] = 'question/type/multichoicegrid';
+$string['pluginnamesummary'] = 'Multiple Choice Grid type of question are used to display a main document and a series of multiple
+ choices questions.';
 
-$string['audiofiles'] =  'Audio files';
-$string['documents'] =  'Documents';
+$string['audiofiles'] = 'Audio files';
+$string['documents'] = 'Documents';
+$string['editor'] = 'Editor files';
 
-$string['answerheader'] =  'Answers';
-$string['numberofanswers'] =  'Number of answers';
-$string['answer'] =  'Answer {no}';
-$string['answer_help'] =  'Answer {no} help';
-$string['option:1'] =  'A';
-$string['option:2'] =  'B';
-$string['option:3'] =  'C';
-$string['option:4'] =  'D';
-
+$string['answerheader'] = 'Answers';
+$string['numberofanswers'] = 'Number of answers';
+$string['answer'] = 'Answer {no}';
+$string['answer_help'] = 'Answer {no} help';
+$string['option:1'] = 'A';
+$string['option:2'] = 'B';
+$string['option:3'] = 'C';
+$string['option:4'] = 'D';
 

@@ -15,24 +15,33 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The editing form for toeicexam question type is defined here.
+ * The editing form for multichoicegrid question type is defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use qtype_toeicexam\utils;
+use qtype_multichoicegrid\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * toeicexam question editing form defition.
+ * multichoicegrid question editing form defition.
  *
  * You should override functions as necessary from the parent class located at
  * /question/type/edit_question_form.php.
  */
-class qtype_toeicexam_edit_form extends question_edit_form {
+class qtype_multichoicegrid_edit_form extends question_edit_form {
+
+    /**
+     * Returns the question type name.
+     *
+     * @return string The question type name.
+     */
+    public function qtype() {
+        return 'multichoicegrid';
+    }
 
     /**
      * Add question-type specific form fields.
@@ -40,30 +49,34 @@ class qtype_toeicexam_edit_form extends question_edit_form {
      * @param MoodleQuickForm $mform the form being built.
      */
     protected function definition_inner($mform) {
-        $this->add_interactive_settings(true, true);
-
-        foreach (utils::FILE_AREAS as $item) {
+        foreach (utils::DOCUMENT_AREAS as $item) {
             $mform->addElement('filemanager', $item,
-                get_string($item, 'qtype_toeicexam'),
+                get_string($item, 'qtype_multichoicegrid'),
                 null,
                 utils::file_manager_options($item)
             );
             $mform->setType($item, PARAM_RAW);
         }
         raise_memory_limit(MEMORY_EXTRA);
-        $this->add_per_answer_fields($mform, get_string('answer', 'qtype_toeicexam', '{no}'),
+        $this->add_per_answer_fields($mform, get_string('answer', 'qtype_multichoicegrid', '{no}'),
             question_bank::fraction_options_full(), utils::BASE_ANSWER_COUNT, utils::BASE_ANSWER_COUNT);
         raise_memory_limit(MEMORY_STANDARD);
+
+        $this->add_combined_feedback_fields(true);
+        $mform->disabledIf('shownumcorrect', 'single', 'eq', 1);
+
+        $this->add_interactive_settings(true, true);
     }
 
     protected function data_preprocessing($question) {
         $question = parent::data_preprocessing($question);
         $question = $this->data_preprocessing_answers($question, false);
+        $question = $this->data_preprocessing_combined_feedback($question, true);
         $question = $this->data_preprocessing_hints($question, true, true);
 
-        foreach (utils::FILE_AREAS as $item) {
+        foreach (utils::DOCUMENT_AREAS as $item) {
             $draftitemid = file_get_submitted_draft_itemid($item);
-            file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_toeicexam',
+            file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_multichoicegrid',
                 $item, !empty($question->id) ? (int) $question->id : null,
                 utils::file_manager_options($item));
             $question->$item = $draftitemid;
@@ -71,8 +84,6 @@ class qtype_toeicexam_edit_form extends question_edit_form {
 
         return $question;
     }
-
-
 
     /**
      * Get a single row of answers
@@ -92,10 +103,11 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         // Answer 'answer' is a key in saving the question (see {@link save_question_answers()}).
         // Same for feedback.
         for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
-            $radioarray[] = $mform->createElement('radio', 'answer', '', get_string('option:' . $i, 'qtype_toeicexam'), $i);
+            $radioarray[] = $mform->createElement('radio', 'answer', '', get_string('option:' . $i, 'qtype_multichoicegrid'), $i);
         }
         $repeated[] =
-            $mform->createElement('group', 'answergroup', get_string('answer', 'qtype_toeicexam'), $radioarray, array(' '), false);
+            $mform->createElement('group', 'answergroup', get_string('answer', 'qtype_multichoicegrid'), $radioarray, array(' '),
+                false);
         $repeated[] = $mform->createElement('hidden', 'fraction');
         $repeated[] = $mform->createElement('editor', 'feedback',
             get_string('feedback', 'question'), array('rows' => 1), $this->editoroptions);
@@ -105,14 +117,5 @@ class qtype_toeicexam_edit_form extends question_edit_form {
         $repeatedoptions['fraction']['type'] = PARAM_INT;
         $answersoption = 'answers';
         return $repeated;
-    }
-
-    /**
-     * Returns the question type name.
-     *
-     * @return string The question type name.
-     */
-    public function qtype() {
-        return 'toeicexam';
     }
 }

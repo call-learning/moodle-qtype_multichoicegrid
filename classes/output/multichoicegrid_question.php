@@ -15,32 +15,33 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The toeicexam question renderer class is defined here.
+ * The multichoicegrid question renderer class is defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace qtype_toeicexam\output;
+namespace qtype_multichoicegrid\output;
 
 use moodle_url;
-use qtype_toeicexam\utils;
+use qtype_multichoicegrid\utils;
 use question_attempt;
 use question_display_options;
 use renderable;
+use renderer_base;
 use stdClass;
 use templatable;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Generates the output for toeicexam questions.
+ * Generates the output for multichoicegrid questions.
  *
  * You should override functions as necessary from the parent class located at
  * /question/type/rendererbase.php.
  */
-class toeicexam_question implements renderable, templatable {
+class multichoicegrid_question implements renderable, templatable {
 
     /**
      * @var question_attempt
@@ -60,7 +61,7 @@ class toeicexam_question implements renderable, templatable {
         $this->truefaldisplayoptions = $truefaldisplayoptions;
     }
 
-    public function export_for_template(\renderer_base $output) {
+    public function export_for_template(renderer_base $output) {
         $data = new stdClass();
         $pdffilesurls = iterator_to_array(self::get_url_for_document($this->qa, 'documents'));
         $audiofilesurl = iterator_to_array(self::get_url_for_document($this->qa, 'audiofiles'));
@@ -69,7 +70,7 @@ class toeicexam_question implements renderable, templatable {
         };
         $data->possibleanswers = [];
         for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
-            $data->possibleanswers[] = get_string('option:' . $i, 'qtype_toeicexam');
+            $data->possibleanswers[] = get_string('option:' . $i, 'qtype_multichoicegrid');
         }
         $data->pdffiles = array_map($tofileurlobjects, $pdffilesurls);
         $data->audiofiles = array_map($tofileurlobjects, $audiofilesurl);
@@ -87,15 +88,15 @@ class toeicexam_question implements renderable, templatable {
             $iscorrect = false;
             for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
                 $ananswer = new stdClass();
-                $ananswer->label = get_string('option:' . $i, 'qtype_toeicexam');
+                $ananswer->label = get_string('option:' . $i, 'qtype_multichoicegrid');
                 $ananswer->value = $i;
                 if ($response == $i) {
                     $ananswer->selected = true;
                     $iscorrect = ($response == $answer->answer) ? 1 : 0;
                 }
                 if ($this->options->correctness) {
-                     $isrightvalue = ($response == $answer->answer) ? 1 : 0;
-                     $ananswer->additionalclass = $this->truefaldisplayoptions[$isrightvalue]->additionalclass;
+                    $isrightvalue = ($response == $answer->answer) ? 1 : 0;
+                    $ananswer->additionalclass = $this->truefaldisplayoptions[$isrightvalue]->additionalclass;
 
                 }
                 $aquestion->answers[] = $ananswer;

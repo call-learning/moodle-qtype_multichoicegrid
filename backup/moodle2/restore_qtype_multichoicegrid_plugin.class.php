@@ -15,43 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for the multichoicegrid question definition class.
- *
- * @package     qtype_multichoicegrid
+ * @package    moodlecore
+ * @subpackage backup-moodle2
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
-require_once($CFG->dirroot . '/question/type/multichoicegrid/tests/helper.php');
-
 /**
- * Unit tests for multichoicegrid definition class.
+ * Restore plugin class that provides the necessary information
+ * needed to restore one multichoicegrid question type plugin
  *
- * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_multichoicegrid_test extends basic_testcase {
-    /** @var qtype_multichoicegrid instance of the question type class to test. */
-    protected $qtype;
-
-    public function test_name() {
-        $this->assertEquals($this->qtype->name(), 'multichoicegrid');
-    }
-
-    public function test_can_analyse_responses() {
-        $this->assertTrue($this->qtype->can_analyse_responses());
-    }
-
-    protected function setUp() {
-        $this->qtype = question_bank::get_qtype('multichoicegrid');
-    }
-
-    protected function tearDown() {
-        $this->qtype = null;
+class restore_qtype_multichoicegrid_plugin extends restore_qtype_extrafields_plugin {
+    /**
+     * Process the qtype/multichoicegrid element
+     */
+    public function process_multichoicegrid($data) {
+        $this->really_process_extra_question_fields($data);
     }
 }

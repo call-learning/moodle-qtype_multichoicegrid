@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template qtype_toeicexam/toeicexam_question
+    @template qtype_multichoicegrid/multichoicegrid_question
 
     The question to display
 
@@ -29,7 +29,7 @@
         ]
     }
 }}
-<div class="toeicexam_question">
+<div class="multichoicegrid_question">
     <div class="row">
         <div class="col">
             <div class="documentpdf">
@@ -46,8 +46,8 @@
                     <audio class="m-auto" controls src="{{url}}"></audio>
                 {{/audiofiles}}
             </div>
-            <div class="pt-3">
-                <table class="columns-autoflow-1to1to1">
+            <div class="pt-3 answer-autoflow">
+                <table>
                     <thead>
                     <tr>
                         <td>#</td>

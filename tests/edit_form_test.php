@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for the toeicexam edit form.
+ * Unit tests for the multichoicegrid edit form.
  *
- * @package   qtype_toeicexam
+ * @package   qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,16 +27,37 @@ global $CFG;
 
 require_once($CFG->dirroot . '/question/engine/tests/helpers.php');
 require_once($CFG->dirroot . '/question/type/edit_question_form.php');
-require_once($CFG->dirroot . '/question/type/toeicexam/edit_toeicexam_form.php');
+require_once($CFG->dirroot . '/question/type/multichoicegrid/edit_multichoicegrid_form.php');
 
 /**
- * Unit tests for the toeicexam edit form.
+ * Unit tests for the multichoicegrid edit form.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_toeicexam_edit_form_test extends advanced_testcase {
+class qtype_multichoicegrid_edit_form_test extends advanced_testcase {
+    /**
+     * Test the form correctly validates the HTML allowed in items.
+     */
+    public function test_item_validation() {
+        list($form, $category) = $this->get_form();
+
+        $generator = $this->getDataGenerator();
+        $submitteddata = test_question_maker::get_question_form_data('multichoicegrid');
+        $overrides = [
+            'category' => $category->id,
+            'defaultmark' => -1 // Will raise an error.
+        ];
+
+        $fromform = $generator->combine_defaults_and_record((array) $submitteddata, $overrides);
+        $errors = $form->validation($fromform, []);
+
+        // For now we don't do much validation but this will need to be covered in detail if it does.
+        $this->assertEquals(get_string('defaultmarkmustbepositive', 'question'),
+            $errors['defaultmark']);
+    }
+
     /**
      * Helper method.
      *
@@ -51,7 +72,7 @@ class qtype_toeicexam_edit_form_test extends advanced_testcase {
         $syscontext = context_system::instance();
         $category = question_make_default_categories(array($syscontext));
         $fakequestion = new stdClass();
-        $fakequestion->qtype = 'toeicexam';
+        $fakequestion->qtype = 'multichoicegrid';
         $fakequestion->contextid = $syscontext->id;
         $fakequestion->createdby = 2;
         $fakequestion->category = $category->id;
@@ -63,47 +84,9 @@ class qtype_toeicexam_edit_form_test extends advanced_testcase {
         $fakequestion->formoptions->repeatelements = true;
         $fakequestion->inputs = null;
 
-        $form = new qtype_toeicexam_edit_form(new moodle_url('/'), $fakequestion, $category,
-                new question_edit_contexts($syscontext));
+        $form = new qtype_multichoicegrid_edit_form(new moodle_url('/'), $fakequestion, $category,
+            new question_edit_contexts($syscontext));
 
         return [$form, $category];
-    }
-
-    /**
-     * Test the form correctly validates the HTML allowed in items.
-     */
-    public function test_item_validation() {
-        list($form, $category) = $this->get_form();
-
-        $submitteddata = [
-            'category' => $category->id,
-            'bgimage' => '',
-            'nodropzone' => 0,
-            'noitems' => 5,
-            'drags' => [
-                ['dragitemtype' => 'image'],
-                ['dragitemtype' => 'image'],
-                ['dragitemtype' => 'word'],
-                ['dragitemtype' => 'word'],
-                ['dragitemtype' => 'word'],
-            ],
-            'draglabel' => [
-                'frog',
-                '<b>toad</b>',
-                'cat',
-                '<span lang="fr"><b>chien</b></span>',
-                '<textarea>evil!</textarea>',
-            ],
-        ];
-
-        $errors = $form->validation($submitteddata, []);
-
-        $this->assertArrayNotHasKey('drags[0]', $errors);
-        $this->assertEquals('HTML tags are not allowed in this text which is the alt text for a draggable image.',
-                $errors['drags[1]']);
-        $this->assertArrayNotHasKey('drags[2]', $errors);
-        $this->assertArrayNotHasKey('drags[3]', $errors);
-        $this->assertEquals('Only "&lt;br&gt;&lt;sub&gt;&lt;sup&gt;&lt;b&gt;&lt;i&gt;&lt;strong&gt;&lt;em&gt;&lt;span&gt;" ' .
-                'tags are allowed in this draggable text.', $errors['drags[4]']);
     }
 }

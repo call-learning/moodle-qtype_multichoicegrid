@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="question/type/toeicexam/db" VERSION="20120122" COMMENT="XMLDB file for Moodle question/type/toeicexam"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<XMLDB xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PATH="question/type/multichoicegrid/db" VERSION="20210906"
+       COMMENT="XMLDB file for Moodle question/type/multichoicegrid"
        xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
-        <TABLE NAME="qtype_toeicexam_options" COMMENT="Info about a toeicexam question">
+        <TABLE NAME="qtype_multichoicegrid" COMMENT="Info about a multichoicegrid question">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key references question.id."/>
@@ -14,7 +14,8 @@
                 <FIELD NAME="partiallycorrectfeedbackformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
                 <FIELD NAME="incorrectfeedback" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Feedback shown for any incorrect response."/>
                 <FIELD NAME="incorrectfeedbackformat" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-                <FIELD NAME="shownumcorrect" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If true, then when the user gets the question partially correct, tell them how many choices they got correct alongside the feedback."/>
+                <FIELD NAME="shownumcorrect" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="If true, then when the user gets the question partially correct, tell them how many choices they got correct alongside the feedback."/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

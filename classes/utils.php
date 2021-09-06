@@ -15,13 +15,14 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The editing form for toeicexam question type is defined here.
+ * The editing form for multichoicegrid question type is defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace qtype_toeicexam;
+
+namespace qtype_multichoicegrid;
 defined('MOODLE_INTERNAL') || die();
 
 class utils {
@@ -35,22 +36,29 @@ class utils {
      */
     const BASE_ANSWER_COUNT = 25;
 
-
     const FILEPICKER_OPTIONS = [
         'audiofiles' => array('accepted_types' => 'web_audio', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
-        'documents' => array('accepted_types' => 'pdf', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0)
+        'documents' => array('accepted_types' => 'pdf', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
+        'correctfeedback' => array('trusttext' => true, 'subdirs' => true),
+        'partiallycorrectfeedback' => array('trusttext' => true, 'subdirs' => true),
+        'incorrectfeedback' => array('trusttext' => true, 'subdirs' => true)
     ];
 
-    const FILE_AREAS = [
+    const DOCUMENT_AREAS = [
         'audiofiles',
         'documents'
     ];
+    const FILE_AREAS = [
+        'correctfeedback',
+        'partiallycorrectfeedback',
+        'incorrectfeedback'
+    ] + self::DOCUMENT_AREAS;
+
     /**
      * @param $type
      * @return string[]
      */
     public static function file_manager_options($type) {
         return self::FILEPICKER_OPTIONS[$type];
-
     }
 }

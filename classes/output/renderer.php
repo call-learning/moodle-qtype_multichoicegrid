@@ -15,26 +15,29 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * The toeicexam question renderer class is defined here.
+ * The multichoicegrid question renderer class is defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace qtype_toeicexam\output;
+
+namespace qtype_multichoicegrid\output;
+
 use qtype_renderer;
+use qtype_with_combined_feedback_renderer;
 use question_attempt;
 use question_display_options;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Generates the output for toeicexam questions.
+ * Generates the output for multichoicegrid questions.
  *
  * You should override functions as necessary from the parent class located at
  * /question/type/rendererbase.php.
  */
-class renderer extends qtype_renderer {
+class renderer extends qtype_with_combined_feedback_renderer {
 
     /**
      * Generates the display of the formulation part of the question. This is the
@@ -48,26 +51,18 @@ class renderer extends qtype_renderer {
      */
     public function formulation_and_controls(question_attempt $qa, question_display_options $options) {
         $truefalsedisplayinfo = [];
-        foreach([true, false] as $value) {
+        foreach ([true, false] as $value) {
             $truefalsedisplayinfo[$value] = (object) [
                 'image' => $this->feedback_image((int) $value),
                 'additionalclass' => ' ' . $this->feedback_class((int) $value),
             ];
         }
 
-        return $this->render(new toeicexam_question($qa, $options, $truefalsedisplayinfo));
+        return $this->render(new multichoicegrid_question($qa, $options, $truefalsedisplayinfo));
     }
 
-    /**
-     * Generate the specific feedback. This is feedback that varies according to
-     * the response the student gave. This method is only called if the display options
-     * allow this to be shown.
-     *
-     * @param question_attempt $qa the question attempt to display.
-     * @return string HTML fragment.
-     */
-    protected function specific_feedback(question_attempt $qa) {
-        return parent::specific_feedback($qa);
+    public function specific_feedback(question_attempt $qa) {
+        return $this->combined_feedback($qa);
     }
 
     /**
@@ -79,6 +74,14 @@ class renderer extends qtype_renderer {
      * @return string HTML fragment.
      */
     protected function correct_response(question_attempt $qa) {
-        return parent::correct_response($qa);
+        $textresponses = [];
+        $index = 1;
+        foreach ($qa->get_question()->answers as $answerkey => $answerinfo) {
+            $answertypetext = get_string('option:' . $answerinfo->answer, 'qtype_multichoicegrid');
+            $textresponses[] = "{$index} -> $answertypetext";
+            $index++;
+        }
+        return get_string('correctansweris', 'qtype_shortanswer',
+            s(join(', ', $textresponses)));
     }
 }

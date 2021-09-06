@@ -17,15 +17,15 @@
 /**
  * Plugin version and other meta-data are defined here.
  *
- * @package     qtype_toeicexam
+ * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'qtype_toeicexam';
+$plugin->component = 'qtype_multichoicegrid';
 $plugin->release = '0.1.0';
-$plugin->version = 2021082400;
+$plugin->version = 2021082401;
 $plugin->requires = 2020061500;
 $plugin->maturity = MATURITY_ALPHA;

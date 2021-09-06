@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Serve question type files
+ * Multiple choice grid
  *
  * @package     qtype_multichoicegrid
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
@@ -25,18 +25,24 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Checks file access for lib.php questions.
+ * Upgrade code for the multiple choice grid type.
  *
- * @param object $course The course we are in
- * @param object $cm Course module
- * @param object $context The context object
- * @param string $filearea the name of the file area.
- * @param array $args the remaining bits of the file path.
- * @param bool $forcedownload whether the user must be forced to download the file.
- * @param array $options additional options affecting the file serving
+ * @param int $oldversion the version we are upgrading from.
  */
-function qtype_multichoicegrid_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
-    global $CFG;
-    require_once($CFG->libdir . '/questionlib.php');
-    question_pluginfile($course, $context, 'qtype_multichoicegrid', $filearea, $args, $forcedownload, $options);
+function xmldb_qtype_multichoicegrid_upgrade($oldversion) {
+    global $CFG, $DB;
+    $dbman = $DB->get_manager();
+    if ($oldversion < 2021082401) {
+
+        // Define table qtype_multichoicegrid to be renamed to NEWNAMEGOESHERE.
+        $table = new xmldb_table('qtype_mcgrid_options');
+
+        // Launch rename table for qtype_multichoicegrid.
+        $dbman->rename_table($table, 'qtype_multichoicegrid');
+
+        // Multichoicegrid savepoint reached.
+        upgrade_plugin_savepoint(true, 2021082401, 'qtype', 'multichoicegrid');
+    }
+
+    return true;
 }
