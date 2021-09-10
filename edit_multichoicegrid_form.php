@@ -22,6 +22,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use qtype_multichoicegrid\multichoice_docs;
 use qtype_multichoicegrid\utils;
 
 defined('MOODLE_INTERNAL') || die();
@@ -49,13 +50,37 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
      * @param MoodleQuickForm $mform the form being built.
      */
     protected function definition_inner($mform) {
-        foreach (utils::DOCUMENT_AREAS as $item) {
-            $mform->addElement('filemanager', $item,
-                get_string($item, 'qtype_multichoicegrid'),
-                null,
-                utils::file_manager_options($item)
+        foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $item) {
+            $mform->addElement('header', $item . 'header',
+                get_string($item. ':title', 'qtype_multichoicegrid'));
+            $repeated = [];
+            $repeated[] =
+                $mform->createElement('filemanager',
+                    $item,
+                    get_string($item, 'qtype_multichoicegrid'),
+                    null,
+                    utils::file_manager_options($item));
+            $repeated[] =
+                $mform->createElement('text',
+                    $item . 'name',
+                    get_string($item . 'name', 'qtype_multichoicegrid'));
+
+            if (isset($this->question->options->$item)) {
+                $repeatcount = count($this->question->options->$item);
+            } else {
+                $repeatcount = 1;
+            }
+            $repeatedoptions = [];
+            $repeatedoptions[$item]['type'] = PARAM_RAW;
+            $repeatedoptions[$item . 'name']['type'] = PARAM_RAW;
+            $this->repeat_elements(
+                $repeated,
+                $repeatcount,
+                $repeatedoptions,
+                $item . 'item',
+                'add' . $item,
+                1
             );
-            $mform->setType($item, PARAM_RAW);
         }
         raise_memory_limit(MEMORY_EXTRA);
         $this->add_per_answer_fields($mform, get_string('answer', 'qtype_multichoicegrid', '{no}'),
@@ -73,14 +98,29 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
         $question = $this->data_preprocessing_answers($question, false);
         $question = $this->data_preprocessing_combined_feedback($question, true);
         $question = $this->data_preprocessing_hints($question, true, true);
+        $question = $this->data_preprocessing_documents($question);
+        return $question;
+    }
 
-        foreach (utils::DOCUMENT_AREAS as $item) {
-            $draftitemid = file_get_submitted_draft_itemid($item);
-            file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_multichoicegrid',
-                $item, !empty($question->id) ? (int) $question->id : null,
-                utils::file_manager_options($item));
-            $question->$item = $draftitemid;
+    /**
+     * Perform the necessary preprocessing for audio and document fields
+     * @param object $question the data being passed to the form.
+     * @return object $question the modified data.
+     */
+    protected function data_preprocessing_documents($question) {
+        foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
+            $draftitemid = file_get_submitted_draft_itemid($area);
+            $docsforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_records(
+                array('questionid' => $question->id, 'type' => $type)
+            );
+            foreach($docsforthisquestion as $doc) {
+                file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_multichoicegrid',
+                    $area, $doc->get('id'),
+                    utils::file_manager_options($area));
+                $question->{$area}[] = $draftitemid;
+            }
         }
+        multichoice_docs::add_document_data($question);
 
         return $question;
     }
@@ -109,12 +149,15 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
             $mform->createElement('group', 'answergroup', get_string('answer', 'qtype_multichoicegrid'), $radioarray, array(' '),
                 false);
         $repeated[] = $mform->createElement('hidden', 'fraction');
-        $repeated[] = $mform->createElement('editor', 'feedback',
+        $repeated[] = $mform->createElement('text', 'feedback',
             get_string('feedback', 'question'), array('rows' => 1), $this->editoroptions);
+        $repeated[] = $mform->createElement('hidden', 'feedbackformat');
         $repeatedoptions['answer']['type'] = PARAM_RAW;
         $repeatedoptions['feedback']['type'] = PARAM_TEXT;
         $repeatedoptions['fraction']['default'] = 0;
         $repeatedoptions['fraction']['type'] = PARAM_INT;
+        $repeatedoptions['feedbackformat']['type'] = PARAM_INT;
+        $repeatedoptions['feedbackformat']['default'] = FORMAT_PLAIN;
         $answersoption = 'answers';
         return $repeated;
     }

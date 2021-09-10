@@ -84,8 +84,8 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
      * @return bool True if the user can access this file.
      */
     public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) {
-        $isdocument = $component == 'qtype_multichoicegrid' && $filearea == 'audiofiles' && $args[0] == $this->id;
-        $isaudio = $component == 'qtype_multichoicegrid' && $filearea == 'documents' && $args[0] == $this->id;
+        $isdocument = $component == 'qtype_multichoicegrid' && $filearea == 'audio' && $args[0] == $this->id;
+        $isaudio = $component == 'qtype_multichoicegrid' && $filearea == 'document' && $args[0] == $this->id;
         return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) || $isdocument || $isaudio;
     }
 

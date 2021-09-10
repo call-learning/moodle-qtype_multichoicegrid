@@ -63,10 +63,10 @@ class multichoicegrid_question implements renderable, templatable {
 
     public function export_for_template(renderer_base $output) {
         $data = new stdClass();
-        $pdffilesurls = iterator_to_array(self::get_url_for_document($this->qa, 'documents'));
-        $audiofilesurl = iterator_to_array(self::get_url_for_document($this->qa, 'audiofiles'));
+        $pdffilesurls = iterator_to_array(self::get_url_for_document($this->qa, 'document'));
+        $audiofilesurl = iterator_to_array(self::get_url_for_document($this->qa, 'audio'));
         $tofileurlobjects = function($fileurl) {
-            return (object) ['url' => $fileurl];
+            return (object) ['url' => $fileurl ];
         };
         $data->possibleanswers = [];
         for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {

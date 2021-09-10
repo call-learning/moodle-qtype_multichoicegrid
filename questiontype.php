@@ -22,6 +22,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use qtype_multichoicegrid\multichoice_docs;
 use qtype_multichoicegrid\utils;
 
 defined('MOODLE_INTERNAL') || die();
@@ -50,12 +51,36 @@ class qtype_multichoicegrid extends question_type {
         parent::save_question_options($question);
         $this->save_question_answers($question);
         $this->save_hints($question);
-        file_save_draft_area_files($question->audiofiles, $question->context->id,
-            'qtype_multichoicegrid', 'audiofiles', $question->id,
-            utils::file_manager_options('audiofiles'));
-        file_save_draft_area_files($question->documents, $question->context->id,
-            'qtype_multichoicegrid', 'documents', $question->id,
-            utils::file_manager_options('documents'));
+        // Remove all existing docs before adding the new ones.
+
+        foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
+            foreach ($question->$area as $index => $file) {
+                $doctext = $question->{$area . 'name'}[$index] ?? "";
+                $docforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_record(
+                    array('questionid' => $question->id, 'type' => $type, 'sortorder' => $index)
+                );
+                if (empty($docforthisquestion)) {
+                    $docforthisquestion = new multichoice_docs(0, (object) [
+                        'type' => $type,
+                        'name' => $doctext,
+                        'sortorder' => $index,
+                        'questionid' => $question->id
+                    ]);
+                    $docforthisquestion->create();
+                } else {
+                    $docforthisquestion->set('name', $doctext);
+                    $docforthisquestion->update();
+                }
+
+                // Make sure we delete file that is saved under the same index.
+                $fs = get_file_storage();
+                $fs->delete_area_files($question->context->id,
+                    'qtype_multichoicegrid', $area, $docforthisquestion->get('id'));
+                file_save_draft_area_files($file, $question->context->id,
+                    'qtype_multichoicegrid', $area, $docforthisquestion->get('id'),
+                    utils::file_manager_options($area));
+            }
+        }
     }
 
     /**
@@ -83,7 +108,7 @@ class qtype_multichoicegrid extends question_type {
         $this->move_files_in_answers($questionid, $oldcontextid, $newcontextid, true);
         $this->move_files_in_hints($questionid, $oldcontextid, $newcontextid);
 
-        foreach (utils::FILE_AREAS as $area) {
+        foreach (utils::get_fileareas() as $area) {
             $fs->move_area_files_to_new_context($oldcontextid,
                 $newcontextid, 'qtype_multichoicegrid', $area, $questionid);
         }
@@ -94,6 +119,7 @@ class qtype_multichoicegrid extends question_type {
         $this->initialise_question_answers($question, $questiondata, false);
         $this->initialise_question_hints($question, $questiondata);
         $this->initialise_combined_feedback($question, $questiondata);
+        multichoice_docs::add_document_data($question);
     }
 
     protected function delete_files($questionid, $contextid) {
@@ -103,16 +129,10 @@ class qtype_multichoicegrid extends question_type {
         $this->delete_files_in_answers($questionid, $contextid, true);
         $this->delete_files_in_hints($questionid, $contextid);
 
-        foreach (utils::FILE_AREAS as $area) {
+        foreach (utils::get_fileareas() as $area) {
             $fs->delete_area_files($contextid, 'qtype_multichoicegrid',
-                'area', $questionid);
+                $area, $questionid);
         }
-        $fs->delete_area_files($contextid, 'qtype_calculatedmulti',
-            'correctfeedback', $questionid);
-        $fs->delete_area_files($contextid, 'qtype_calculatedmulti',
-            'partiallycorrectfeedback', $questionid);
-        $fs->delete_area_files($contextid, 'qtype_calculatedmulti',
-            'incorrectfeedback', $questionid);
     }
 
 }

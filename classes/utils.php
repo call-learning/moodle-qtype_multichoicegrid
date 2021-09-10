@@ -37,23 +37,25 @@ class utils {
     const BASE_ANSWER_COUNT = 25;
 
     const FILEPICKER_OPTIONS = [
-        'audiofiles' => array('accepted_types' => 'web_audio', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
-        'documents' => array('accepted_types' => 'pdf', 'subdirs' => false, 'maxfiles' => -1, 'maxbytes' => 0),
+        'audio' => array('accepted_types' => 'web_audio', 'maxbytes' => 0, 'maxfiles' => 1, 'subdirs' => 0),
+        'document' => array('accepted_types' => 'pdf', 'maxbytes' => 0, 'maxfiles' => 1, 'subdirs' => 0),
         'correctfeedback' => array('trusttext' => true, 'subdirs' => true),
         'partiallycorrectfeedback' => array('trusttext' => true, 'subdirs' => true),
         'incorrectfeedback' => array('trusttext' => true, 'subdirs' => true)
     ];
 
-    const DOCUMENT_AREAS = [
-        'audiofiles',
-        'documents'
-    ];
-    const FILE_AREAS = [
-        'correctfeedback',
-        'partiallycorrectfeedback',
-        'incorrectfeedback'
-    ] + self::DOCUMENT_AREAS;
-
+    /**
+     * Filearea for this plugin
+     *
+     * @return string[]
+     */
+    public static function get_fileareas() {
+        return [
+                'correctfeedback',
+                'partiallycorrectfeedback',
+                'incorrectfeedback'
+            ] + array_values(multichoice_docs::DOCUMENT_TYPE_SHORTNAMES);
+    }
     /**
      * @param $type
      * @return string[]

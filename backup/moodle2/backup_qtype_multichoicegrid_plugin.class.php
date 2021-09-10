@@ -39,6 +39,6 @@ class backup_qtype_multichoicegrid_plugin extends backup_qtype_extrafields_plugi
      * files to be processed both in backup and restore.
      */
     public static function get_qtype_fileareas() {
-        return array_fill_keys(utils::FILE_AREAS, 'question_created');
+        return array_fill_keys(utils::get_fileareas(), 'question_created');
     }
 }

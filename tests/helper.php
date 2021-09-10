@@ -190,10 +190,10 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
         $form = new stdClass();
         $form->name = 'Test multichoicegrid';
         test_question_maker::set_standard_combined_feedback_form_data($form);
-        $form->audiofiles =
+        $form->audio =
             self::create_fixture_draft_file($CFG->dirroot .
                 '/question/type/multichoicegrid/tests/fixtures/bensound-littleplanet.mp3');
-        $form->documents =
+        $form->document =
             self::create_fixture_draft_file($CFG->dirroot . '/question/type/multichoicegrid/tests/fixtures/document.pdf');
         $form->noanswers = count(self::TEN_QUESTIONS);
         $form->answers = [];

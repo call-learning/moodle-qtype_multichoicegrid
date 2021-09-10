@@ -33,8 +33,13 @@ $string['pluginname_link'] = 'question/type/multichoicegrid';
 $string['pluginnamesummary'] = 'Multiple Choice Grid type of question are used to display a main document and a series of multiple
  choices questions.';
 
-$string['audiofiles'] = 'Audio files';
-$string['documents'] = 'Documents';
+$string['audio:title'] = 'Audio files';
+$string['audio'] = 'Audio files {no}';
+$string['audioname'] = 'Audio files name {no}';
+$string['document:title'] = 'Documents';
+$string['document'] = 'Documents {no}';
+
+$string['documentname'] = 'Document name {no} ';
 $string['editor'] = 'Editor files';
 
 $string['answerheader'] = 'Answers';
