@@ -34,6 +34,7 @@
         <div class="col">
             <div class="documentpdf">
                 {{#pdffiles}}
+                    <span>{{name}}</span>
                     <object class="min-vh-100" data="{{url}}" type="application/pdf" width="100%">
                         <param name="src" value="{{url}}"/>
                     </object>
@@ -43,6 +44,7 @@
         <div class="col-4">
             <div>
                 {{#audiofiles}}
+                    <span>{{name}}</span>
                     <audio class="m-auto" controls src="{{url}}"></audio>
                 {{/audiofiles}}
             </div>

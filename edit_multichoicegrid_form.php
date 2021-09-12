@@ -52,7 +52,7 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
     protected function definition_inner($mform) {
         foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $item) {
             $mform->addElement('header', $item . 'header',
-                get_string($item. ':title', 'qtype_multichoicegrid'));
+                get_string($item . ':title', 'qtype_multichoicegrid'));
             $repeated = [];
             $repeated[] =
                 $mform->createElement('filemanager',
@@ -65,10 +65,12 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
                     $item . 'name',
                     get_string($item . 'name', 'qtype_multichoicegrid'));
 
-            if (isset($this->question->options->$item)) {
-                $repeatcount = count($this->question->options->$item);
-            } else {
-                $repeatcount = 1;
+            $repeatcount = 1;
+            if (!empty($this->question->id)) {
+                $repeatcount = \qtype_multichoicegrid\multichoice_docs::count_records(
+                    array('questionid' => $this->question->id,
+                        'type' => array_flip(multichoice_docs::DOCUMENT_TYPE_SHORTNAMES)[$item]));
+                $repeatcount = $repeatcount ? $repeatcount : 1;
             }
             $repeatedoptions = [];
             $repeatedoptions[$item]['type'] = PARAM_RAW;
@@ -103,25 +105,108 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
     }
 
     /**
+     * Perform the necessary preprocessing for the fields added by
+     * {@link add_per_answer_fields()}.
+     *
+     * Note : this is a slightly different version from core as feedback field are text and not editors.
+     *
+     * @param object $question the data being passed to the form.
+     * @return object $question the modified data.
+     */
+    protected function data_preprocessing_answers($question, $withanswerfiles = false) {
+        if (empty($question->options->answers)) {
+            return $question;
+        }
+        if (!isset($question->feedback)) {
+            $question->feedback = array();
+        }
+        $key = 0;
+        foreach ($question->options->answers as $answer) {
+            if ($withanswerfiles) {
+                // Prepare the feedback editor to display files in draft area.
+                $draftitemid = file_get_submitted_draft_itemid('answer[' . $key . ']');
+                $question->answer[$key]['text'] = file_prepare_draft_area(
+                    $draftitemid,          // Draftid
+                    $this->context->id,    // context
+                    'question',            // component
+                    'answer',              // filarea
+                    !empty($answer->id) ? (int) $answer->id : null, // itemid
+                    $this->fileoptions,    // options
+                    $answer->answer        // text.
+                );
+                $question->answer[$key]['itemid'] = $draftitemid;
+                $question->answer[$key]['format'] = $answer->answerformat;
+            } else {
+                $question->answer[$key] = $answer->answer;
+            }
+
+            $question->fraction[$key] = 0 + $answer->fraction;
+
+            // Evil hack alert. Formslib can store defaults in two ways for
+            // repeat elements:
+            //   ->_defaultValues['fraction[0]'] and
+            //   ->_defaultValues['fraction'][0].
+            // The $repeatedoptions['fraction']['default'] = 0 bit above means
+            // that ->_defaultValues['fraction[0]'] has already been set, but we
+            // are using object notation here, so we will be setting
+            // ->_defaultValues['fraction'][0]. That does not work, so we have
+            // to unset ->_defaultValues['fraction[0]'].
+            unset($this->_form->_defaultValues["fraction[{$key}]"]);
+
+            $question->feedback[$key] = $answer->feedback;
+
+            $key++;
+        }
+
+        // Now process extra answer fields.
+        $extraanswerfields = question_bank::get_qtype($question->qtype)->extra_answer_fields();
+        if (is_array($extraanswerfields)) {
+            // Omit table name.
+            array_shift($extraanswerfields);
+            $question = $this->data_preprocessing_extra_answer_fields($question, $extraanswerfields);
+        }
+
+        return $question;
+    }
+
+    /**
      * Perform the necessary preprocessing for audio and document fields
+     *
      * @param object $question the data being passed to the form.
      * @return object $question the modified data.
      */
     protected function data_preprocessing_documents($question) {
-        foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
-            $draftitemid = file_get_submitted_draft_itemid($area);
-            $docsforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_records(
-                array('questionid' => $question->id, 'type' => $type)
-            );
-            foreach($docsforthisquestion as $doc) {
-                file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_multichoicegrid',
-                    $area, $doc->get('id'),
-                    utils::file_manager_options($area));
-                $question->{$area}[] = $draftitemid;
-            }
-        }
-        multichoice_docs::add_document_data($question);
+        if (!empty($question->id)) {
+            $fs = get_file_storage();
+            foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
+                // Very similar to file_get_submitted_draft_itemid.
+                $draftitemids = optional_param_array($area, [], PARAM_INT);
+                if ($draftitemids) {
+                    require_sesskey();
+                }
+                $docsforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_records(
+                    array('questionid' => $question->id, 'type' => $type),
+                    'sortorder'
+                );
+                foreach (array_values($docsforthisquestion) as $index => $doc) {
+                    $draftitemid = $draftitemids[$index] ?? 0;
+                    file_prepare_draft_area($draftitemid, $this->context->id, 'qtype_multichoicegrid',
+                        $area, $doc->get('id'),
+                        utils::file_manager_options($area));
+                    // Remove draft aread if empty.
+                    $currentdraftcontent = file_get_drafarea_files($draftitemid);
+                    if (empty($currentdraftcontent->list)) {
+                        $doc->delete();
+                        $fs->delete_area_files($question->contextid, 'qtype_multichoicegrid',
+                            $area, $doc->get('sortorder'));
+                    } else{
+                        $question->{$area}[] = $draftitemid;
+                    }
 
+                }
+            }
+            multichoice_docs::add_document_data($question);
+        }
         return $question;
     }
 
@@ -151,13 +236,10 @@ class qtype_multichoicegrid_edit_form extends question_edit_form {
         $repeated[] = $mform->createElement('hidden', 'fraction');
         $repeated[] = $mform->createElement('text', 'feedback',
             get_string('feedback', 'question'), array('rows' => 1), $this->editoroptions);
-        $repeated[] = $mform->createElement('hidden', 'feedbackformat');
         $repeatedoptions['answer']['type'] = PARAM_RAW;
         $repeatedoptions['feedback']['type'] = PARAM_TEXT;
         $repeatedoptions['fraction']['default'] = 0;
         $repeatedoptions['fraction']['type'] = PARAM_INT;
-        $repeatedoptions['feedbackformat']['type'] = PARAM_INT;
-        $repeatedoptions['feedbackformat']['default'] = FORMAT_PLAIN;
         $answersoption = 'answers';
         return $repeated;
     }

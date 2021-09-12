@@ -25,6 +25,7 @@
 namespace qtype_multichoicegrid\output;
 
 use moodle_url;
+use qtype_multichoicegrid\multichoice_docs;
 use qtype_multichoicegrid\utils;
 use question_attempt;
 use question_display_options;
@@ -63,18 +64,13 @@ class multichoicegrid_question implements renderable, templatable {
 
     public function export_for_template(renderer_base $output) {
         $data = new stdClass();
-        $pdffilesurls = iterator_to_array(self::get_url_for_document($this->qa, 'document'));
-        $audiofilesurl = iterator_to_array(self::get_url_for_document($this->qa, 'audio'));
-        $tofileurlobjects = function($fileurl) {
-            return (object) ['url' => $fileurl ];
-        };
+        $question = $this->qa->get_question();
+        $data->audiofiles = $this->get_document_info('audio');
+        $data->pdffiles = $this->get_document_info('document');
         $data->possibleanswers = [];
         for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
             $data->possibleanswers[] = get_string('option:' . $i, 'qtype_multichoicegrid');
         }
-        $data->pdffiles = array_map($tofileurlobjects, $pdffilesurls);
-        $data->audiofiles = array_map($tofileurlobjects, $audiofilesurl);
-        $question = $this->qa->get_question();
         $data->questions = [];
         $index = 1;
         foreach ($question->answers as $answerid => $answer) {
@@ -112,32 +108,49 @@ class multichoicegrid_question implements renderable, templatable {
     }
 
     /**
-     * Returns the URL for an image or document
+     * Returns the URL of the first image or document
      *
      * @param object $qa Question attempt object
      * @param string $filearea File area descriptor
      * @param int $itemid Item id to get
      * @return string Output url, or null if not found
      */
-    protected static function get_url_for_document(question_attempt $qa, $filearea, $itemid = 0) {
-        $question = $qa->get_question();
-        $qubaid = $qa->get_usage_id();
-        $slot = $qa->get_slot();
+    protected function get_url_for_document($filearea, $itemid = 0) {
+        $question = $this->qa->get_question();
+        $qubaid = $this->qa->get_usage_id();
+        $slot = $this->qa->get_slot();
         $fs = get_file_storage();
-        $itemid = $question->id;
         $componentname = $question->qtype->plugin_name();
-        $draftfiles = $fs->get_area_files($question->contextid, $componentname,
+        $files = $fs->get_area_files($question->contextid, $componentname,
             $filearea, $itemid, 'id');
-        if ($draftfiles) {
-            foreach ($draftfiles as $file) {
+        if ($files) {
+            foreach ($files as $file) {
                 if ($file->is_directory()) {
                     continue;
                 }
                 $url = moodle_url::make_pluginfile_url($question->contextid, $componentname,
                     $filearea, "$qubaid/$slot/{$itemid}", '/',
                     $file->get_filename());
-                yield $url->out();
+                return $url->out();
             }
         }
+        return '';
+    }
+
+    protected function get_document_info($documenttype) {
+        $doccontext = [];
+        $question = $this->qa->get_question();
+        $docs =
+            multichoice_docs::get_records(array('questionid' => $question->id,
+                'type' => array_flip(multichoice_docs::DOCUMENT_TYPE_SHORTNAMES)[$documenttype]),
+                'sortorder');
+
+        foreach (array_values($docs) as $index => $doc) {
+            $doccontext[] = [
+                'url' => $this->get_url_for_document($documenttype, $doc->get('id')),
+                'name' => $doc->get('name')
+            ];
+        }
+        return $doccontext;
     }
 }
