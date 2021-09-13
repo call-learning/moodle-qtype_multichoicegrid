@@ -152,7 +152,7 @@ class multichoicegrid_question implements renderable, templatable {
                 $ananswer->feedbackimage = $this->truefaldisplayoptions[$iscorrect]->image;
             }
             $data->parts[$currentpartindex]->questions[] = $aquestion;
-            if ($nextpart && $lastindex > $nextpart->get('start')) {
+            if ($nextpart && $lastindex >= $nextpart->get('start')) {
                 $nextpart = empty($parts) ? null : array_shift($parts);
                 $currentpartindex++;
             }
