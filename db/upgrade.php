@@ -73,5 +73,48 @@ function xmldb_qtype_multichoicegrid_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2021082402, 'qtype', 'multichoicegrid');
     }
 
+    if ($oldversion < 2021082403) {
+
+        // Define field startnumbering to be added to qtype_multichoicegrid.
+        $table = new xmldb_table('qtype_multichoicegrid');
+
+        $field = new xmldb_field('startnumbering', XMLDB_TYPE_INTEGER, '10', null, null, null, '1', 'shownumcorrect');
+        // Conditionally launch add field startnumbering.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Multichoicegrid savepoint reached.
+        upgrade_plugin_savepoint(true, 2021082403, 'qtype', 'multichoicegrid');
+    }
+
+    if ($oldversion < 2021082404) {
+
+        // Define table qtype_multichoicegrid_parts to be created.
+        $table = new xmldb_table('qtype_multichoicegrid_parts');
+
+        // Adding fields to table qtype_multichoicegrid_parts.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('questionid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('start', XMLDB_TYPE_INTEGER, '10', null, null, null, '1');
+        $table->add_field('name', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table qtype_multichoicegrid_parts.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('questionid', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']);
+        $table->add_key('usermodified', XMLDB_KEY_FOREIGN, ['usermodified'], 'user', ['id']);
+
+        // Conditionally launch create table for qtype_multichoicegrid_parts.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Multichoicegrid savepoint reached.
+        upgrade_plugin_savepoint(true, 2021082404, 'qtype', 'multichoicegrid');
+    }
+
     return true;
 }

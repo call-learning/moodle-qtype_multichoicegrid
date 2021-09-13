@@ -36,6 +36,9 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
      * Question text
      */
     const QUESTION_TEXT = 'The quick brown fox jumped over the lazy dog.';
+    /**
+     * Ten questions
+     */
     const TEN_QUESTIONS = [
         1234 => [
             'rightanswer' => '1',
@@ -92,10 +95,9 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
     /**
      * Get answer field name by its parameter/order
      *
-     * @param $dd
-     * @param $desiredindex
+     * @param question_definition $dd
+     * @param int $desiredindex
      * @return string
-     * @throws coding_exception
      */
     public static function get_fieldname_from_definition($dd, $desiredindex) {
         $index = 0;
@@ -108,6 +110,13 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
         return '';
     }
 
+    /**
+     * Get questions
+     *
+     * @param string $qtype
+     * @param null $which
+     * @return array[]
+     */
     public static function get_questions($qtype, $which = null) {
         return self::TEN_QUESTIONS;
     }
@@ -144,7 +153,7 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
      * Helper to create a question which contains the value given in parameter
      *
      * @param question_definition $dd
-     * @param $value
+     * @param mixed $value
      * @return array
      * @throws coding_exception
      */
@@ -156,11 +165,18 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
         return $fullresponse;
     }
 
+    /**
+     * Get possible test questions
+     *
+     * @return string[]
+     */
     public function get_test_questions() {
         return array('ten');
     }
 
     /**
+     * Make mcqgrid question ten
+     *
      * @return qtype_multichoicegrid_question
      */
     public function make_multichoicegrid_question_ten() {
@@ -179,10 +195,23 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
             $dd->answers[$key] =
                 new question_answer($key, $answer['rightanswer'], $answer['fraction'], $answer['feedback'], FORMAT_HTML);
         }
+        $dd->startnumbering = 1;
+        $dd->parts = [
+            [
+                'partstart' => 1,
+                'partname' => 'Part 1'
+            ],
+            [
+                'partstart' => 5,
+                'partname' => 'Part 2'
+            ]
+        ];
         return $dd;
     }
 
     /**
+     * Make mcqgrid question ten
+     *
      * @return object
      */
     public function get_multichoicegrid_question_form_data_ten() {
@@ -190,25 +219,46 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
         $form = new stdClass();
         $form->name = 'Test multichoicegrid';
         test_question_maker::set_standard_combined_feedback_form_data($form);
-        $form->audio =
+        $form->audio = [
             self::create_fixture_draft_file($CFG->dirroot .
-                '/question/type/multichoicegrid/tests/fixtures/bensound-littleplanet.mp3');
-        $form->document =
-            self::create_fixture_draft_file($CFG->dirroot . '/question/type/multichoicegrid/tests/fixtures/document.pdf');
+                '/question/type/multichoicegrid/tests/fixtures/bensound-littleplanet.mp3')];
+        $form->audioname = ['Audio 1'];
+        $form->document = [
+            self::create_fixture_draft_file($CFG->dirroot . '/question/type/multichoicegrid/tests/fixtures/document.pdf')];
+        $form->documentname = ['Document 1'];
         $form->noanswers = count(self::TEN_QUESTIONS);
         $form->answers = [];
         $form->feedback = [];
         $form->fraction = [];
         foreach (self::TEN_QUESTIONS as $key => $answer) {
-            $form->answer[$key] = $answer['rightanswer'];
-            $form->feedback[$key] = $answer['feedback'];
-            $form->fraction[$key] = $answer['fraction'];
+            $form->answer[] = $answer['rightanswer'];
+            $form->feedback[] = $answer['feedback'];
+            $form->fraction[] = $answer['fraction'];
         }
 
+        $form->startnumbering = 1;
+        $form->parts = [
+            [
+                'partstart' => 1,
+                'partname' => 'Part 1'
+            ],
+            [
+                'partstart' => 5,
+                'partname' => 'Part 2'
+            ]
+        ];
         $form->qtype = question_bank::get_qtype('multichoicegrid');
         return $form;
     }
 
+    /**
+     * Create fixture draft file
+     *
+     * @param string $originalfilepath
+     * @return int
+     * @throws file_exception
+     * @throws stored_file_creation_exception
+     */
     public static function create_fixture_draft_file($originalfilepath) {
         global $USER;
         $drafitemid = 0;
@@ -220,7 +270,7 @@ class qtype_multichoicegrid_test_helper extends question_test_helper {
         $filerecord->filearea = 'draft';
         $filerecord->itemid = $drafitemid;
         $filerecord->filepath = '/';
-        $filerecord->filename = 'mkmap.png';
+        $filerecord->filename = basename($originalfilepath);
         $fs->create_file_from_pathname($filerecord, $originalfilepath);
         return $drafitemid;
     }

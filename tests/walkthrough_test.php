@@ -144,6 +144,16 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
         $this->check_current_mark(5);
     }
 
+    /**
+     * Get answer expectation
+     *
+     * @param question_definition $dd
+     * @param int $answerindex
+     * @param mixed $value
+     * @param bool $enabled
+     * @param false $checked
+     * @return question_contains_tag_with_attributes
+     */
     public function get_contains_answer_expectation($dd, $answerindex, $value, $enabled = true, $checked = false) {
         return $this->get_contains_radio_expectation(
             array(
@@ -153,6 +163,16 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
             ), $enabled, $checked);
     }
 
+    /**
+     * Get answer expectation for current answer
+     *
+     * @param question_definition $dd
+     * @param int $answerindex
+     * @param mixed $value
+     * @param mixed $currentanswer
+     * @param bool $enabled
+     * @return question_contains_tag_with_attributes
+     */
     public function get_contains_answer_expectation_currentanswer($dd, $answerindex, $value, $currentanswer, $enabled = true) {
         $fieldname = qtype_multichoicegrid_test_helper::get_fieldname_from_definition($dd, $answerindex);
         return $this->get_contains_radio_expectation(
@@ -163,6 +183,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
             ), $enabled, $currentanswer[$fieldname] == $value);
     }
 
+    /**
+     * Test deferred feedback
+     */
     public function test_deferred_feedback() {
 
         // Create a multichoicegrid question.
@@ -244,6 +267,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
         $this->check_current_mark(9);
     }
 
+    /**
+     * Test deferred feedback unanswered
+     */
     public function test_deferred_feedback_unanswered() {
 
         // Create a multichoicegrid question.
@@ -297,6 +323,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
             $this->get_contains_answer_expectation($dd, 1, 1));
     }
 
+    /**
+     * Test deferred feedback partial unanswered
+     */
     public function test_deferred_feedback_partial_answer() {
 
         // Create a multichoicegrid question.
@@ -356,6 +385,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
             $this->get_contains_partcorrect_expectation());
     }
 
+    /**
+     * Test interactive grading
+     */
     public function test_interactive_grading() {
 
         // Create a multichoicegrid question.
@@ -509,6 +541,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
             $this->get_contains_standard_correct_combined_feedback_expectation());
     }
 
+    /**
+     * Test interactive correct no submit
+     */
     public function test_interactive_correct_no_submit() {
 
         // Create a multichoicegrid question.
@@ -560,6 +595,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
         $this->check_current_mark(10);
     }
 
+    /**
+     * Test interactive partial no submit
+     */
     public function test_interactive_partial_no_submit() {
 
         // Create a multichoicegrid question.
@@ -615,6 +653,9 @@ class qtype_multichoicegrid_walkthrough_test extends qbehaviour_walkthrough_test
         $this->check_current_mark(8);
     }
 
+    /**
+     * Test interactive no right clears
+     */
     public function test_interactive_no_right_clears() {
 
         // Create a multichoicegrid question.

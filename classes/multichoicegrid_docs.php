@@ -14,38 +14,53 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * The multichoicegrid question renderer class is defined here.
- *
- * @package     qtype_multichoicegrid
- * @copyright   2021 Laurent David <laurent@call-learning.fr>
- * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace qtype_multichoicegrid;
 
 use core\persistent;
 
 defined('MOODLE_INTERNAL') || die();
 
-class multichoice_docs extends persistent {
+/**
+ * The multichoicegrid attached documents
+ *
+ * @package     qtype_multichoicegrid
+ * @copyright   2021 Laurent David <laurent@call-learning.fr>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class multichoicegrid_docs extends persistent {
+    /** @var string TABLE */
     const TABLE = 'qtype_multichoicegrid_docs';
+    /**
+     * Audio type
+     */
     const AUDIO_FILE_TYPE = 1;
+    /**
+     * Document type
+     */
     const DOCUMENT_FILE_TYPE = 2;
 
+    /**
+     * Document shortname equivalent with Type
+     */
     const DOCUMENT_TYPE_SHORTNAMES = [
         self::AUDIO_FILE_TYPE => 'audio',
         self::DOCUMENT_FILE_TYPE => 'document'
     ];
 
-    public static function add_document_data($question) {
-        $docsforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_records(
+    /**
+     * Add data to question
+     *
+     * @param object $question either form data or the question_type itself
+     * @throws \coding_exception
+     */
+    public static function add_data($question) {
+        $docsforthisquestion = static::get_records(
             array('questionid' => $question->id)
         );
         foreach ($docsforthisquestion as $doc) {
             $type = $doc->get('type');
             $index = $doc->get('sortorder');
-            $area = multichoice_docs::DOCUMENT_TYPE_SHORTNAMES[$type];
+            $area = self::DOCUMENT_TYPE_SHORTNAMES[$type];
             if (empty($question->{$area . 'name'})) {
                 $question->{$area . 'name'} = [];
             }
@@ -53,6 +68,11 @@ class multichoice_docs extends persistent {
         }
     }
 
+    /**
+     * Properties
+     *
+     * @return array[]
+     */
     protected static function define_properties() {
         return array(
             'type' => [

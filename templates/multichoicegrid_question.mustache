@@ -30,53 +30,77 @@
     }
 }}
 <div class="multichoicegrid_question">
+    <div class="qtext">
+        {{{questiontext}}}
+    </div>
     <div class="row">
         <div class="col">
             <div class="documentpdf">
                 {{#pdffiles}}
                     <span>{{name}}</span>
-                    <object class="min-vh-100" data="{{url}}" type="application/pdf" width="100%">
+                    <object id="documentpdf-{{uniqid}}" data="{{url}}" type="application/pdf" width="100%" height="600">
                         <param name="src" value="{{url}}"/>
                     </object>
+                    {{#js}}
+                        require(['qtype_multichoicegrid/maximise-document'], function(Maximise) {
+                        Maximise('documentpdf-{{uniqid}}');
+                        });
+                    {{/js}}
                 {{/pdffiles}}
             </div>
         </div>
         <div class="col-4">
-            <div>
+            <div class="d-flex flex-column">
                 {{#audiofiles}}
-                    <span>{{name}}</span>
-                    <audio class="m-auto" controls src="{{url}}"></audio>
+                    <div class="d-flex flex-column">
+                        <div>{{name}}</div>
+                        <audio controls src="{{url}}"></audio>
+                    </div>
                 {{/audiofiles}}
             </div>
             <div class="pt-3">
-                <table>
-                    <thead>
-                    <tr>
-                        <td>#</td>
-                        {{#possibleanswers}}
-                            <th>{{.}}</th>
-                        {{/possibleanswers}}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {{#questions}}
-                        <tr class="m-auto">
-                            <td>
-                                {{index}}.
-                            </td>
-                            {{#answers}}
-                                <td>
-                                    <label class="label">
-                                        <input class="input {{additionalclass}}" type="radio" value="{{value}}" name="{{id}}" {{#selected}}checked{{/selected}}>
-                                        <span class="sr-only">{{label}}</span>
-                                    </label>
-                                    {{{feedbackimage}}}
-                                </td>
-                            {{/answers}}
-                        </tr>
-                    {{/questions}}
-                    </tbody>
-                </table>
+                <ul class="nav nav-pills" id="tab-{{uniqid}}" role="tablist">
+                    {{#parts}}
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="p-{{partid}}-{{uniqid}}-tab" data-toggle="pill" href="#p-{{partid}}-{{uniqid}}" role="tab"
+                               aria-controls="p-{{partid}}-{{uniqid}}" aria-selected="{{#isactive}}true{{/isactive}}{{^isactive}}false{{/isactive}}">{{label}}</a>
+                        </li>
+                    {{/parts}}
+                </ul>
+                <div class="tab-content" id="tabcontent-{{uniqid}}">
+                    {{#parts}}
+                        <div class="tab-pane fade {{#isactive}}show active{{/isactive}}" id="p-{{partid}}-{{uniqid}}" role="tabpanel" aria-labelledby="{{partid}}-{{uniqid}}-tab">
+                            <table>
+                                <thead>
+                                <tr class="m-auto">
+                                    <th class="m-auto">#</th>
+                                    {{#possibleanswers}}
+                                        <th class="m-auto">{{.}}</th>
+                                    {{/possibleanswers}}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#questions}}
+                                    <tr class="m-auto">
+                                        <td class="m-auto">
+                                            {{index}}.
+                                        </td>
+                                        {{#answers}}
+                                            <td class="m-auto">
+                                                <label class="label bg-transparent">
+                                                    <input class="input {{additionalclass}}" type="radio" value="{{value}}" name="{{id}}" {{#selected}}checked{{/selected}}>
+                                                    <span class="sr-only">{{label}}</span>
+                                                </label>
+                                                {{{feedbackimage}}}
+                                            </td>
+                                        {{/answers}}
+                                    </tr>
+                                {{/questions}}
+                                </tbody>
+                            </table>
+                        </div>
+                    {{/parts}}
+                </div>
             </div>
         </div>
     </div>

@@ -34,6 +34,9 @@ defined('MOODLE_INTERNAL') || die();
  */
 class qtype_multichoicegrid_question extends question_graded_automatically {
 
+    /**
+     * @var array $answers
+     */
     public $answers = null;
 
     /**
@@ -84,11 +87,21 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
      * @return bool True if the user can access this file.
      */
     public function check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) {
-        $isdocument = $component == 'qtype_multichoicegrid' && $filearea == 'audio' && $args[0] == $this->id;
-        $isaudio = $component == 'qtype_multichoicegrid' && $filearea == 'document' && $args[0] == $this->id;
-        return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload) || $isdocument || $isaudio;
+        $isdocument = $component == 'qtype_multichoicegrid' && $filearea == 'document';
+        $isaudio = $component == 'qtype_multichoicegrid' && $filearea == 'audio';
+        $isadocumentfromthisquestion = \qtype_multichoicegrid\multichoicegrid_docs::record_exists_select(
+            'questionid = :questionid AND id = :id', array('questionid' => $this->id, 'id' => $args[0])
+        );
+        return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload)
+            || ($isdocument || $isaudio) && $isadocumentfromthisquestion;
     }
 
+    /**
+     * Is the reponse complete ?
+     *
+     * @param array $responses
+     * @return bool
+     */
     public function is_complete_response(array $responses) {
         $iscomplete = true;
         foreach (array_keys($this->answers) as $answerkey) {
@@ -99,6 +112,13 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
         return $iscomplete;
     }
 
+    /**
+     * Is it the same response ?
+     *
+     * @param array $prevresponse
+     * @param array $newresponse
+     * @return bool
+     */
     public function is_same_response(array $prevresponse, array $newresponse) {
         $same = true;
         foreach ($this->answers as $answerkey => $answerinfo) {
@@ -112,7 +132,8 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
     /**
      * Get response value from key
      *
-     * @param $answerkey
+     * @param string $answerkey
+     * @param array $responses
      * @return mixed|null
      */
     protected function get_response_value($answerkey, $responses) {
@@ -120,6 +141,13 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
         return empty($responses[$fieldname]) ? null : $responses[$fieldname];
     }
 
+    /**
+     * Summarise response
+     *
+     * @param array $response
+     * @return string
+     * @throws coding_exception
+     */
     public function summarise_response(array $response) {
         $textresponses = [];
         $index = 1;
@@ -135,6 +163,13 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
         return implode(', ', $textresponses);
     }
 
+    /**
+     * Get validation error
+     *
+     * @param array $response
+     * @return lang_string|string
+     * @throws coding_exception
+     */
     public function get_validation_error(array $response) {
         if ($this->is_gradable_response($response)) {
             return '';
@@ -157,6 +192,11 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
         return false;
     }
 
+    /**
+     * Grade response
+     * @param array $responses
+     * @return array
+     */
     public function grade_response(array $responses) {
         $totalscore = 0.0;
         foreach ($this->answers as $answerkey => $answerinfo) {
@@ -211,6 +251,13 @@ class qtype_multichoicegrid_question extends question_graded_automatically {
         return array($rightcount, count($this->answers));
     }
 
+    /**
+     * Compute final grade
+     *
+     * @param array $responses
+     * @param int $totaltries
+     * @return float|int
+     */
     public function compute_final_grade($responses, $totaltries) {
         $totalscore = 0;
         foreach ($this->answers as $answerkey => $answerinfo) {

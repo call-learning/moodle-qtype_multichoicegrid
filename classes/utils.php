@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace qtype_multichoicegrid;
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * The editing form for multichoicegrid question type is defined here.
  *
@@ -21,10 +24,6 @@
  * @copyright   2021 Laurent David <laurent@call-learning.fr>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-namespace qtype_multichoicegrid;
-defined('MOODLE_INTERNAL') || die();
-
 class utils {
     /**
      * Option count for each answer.
@@ -34,9 +33,12 @@ class utils {
     /**
      * Number of answer by default.
      */
-    const BASE_ANSWER_COUNT = 25;
+    const BASE_ANSWER_COUNT = 100;
 
-    const FILEPICKER_OPTIONS = [
+    /**
+     * Option for filemanager
+     */
+    const FILEMANAGER_OPTIONS = [
         'audio' => array('accepted_types' => 'web_audio', 'maxbytes' => 0, 'maxfiles' => 1, 'subdirs' => 0),
         'document' => array('accepted_types' => 'pdf', 'maxbytes' => 0, 'maxfiles' => 1, 'subdirs' => 0),
         'correctfeedback' => array('trusttext' => true, 'subdirs' => true),
@@ -49,18 +51,29 @@ class utils {
      *
      * @return string[]
      */
-    public static function get_fileareas() {
+    public static function get_basic_fileareas() {
         return [
                 'correctfeedback',
                 'partiallycorrectfeedback',
                 'incorrectfeedback'
-            ] + array_values(multichoice_docs::DOCUMENT_TYPE_SHORTNAMES);
+            ];
     }
     /**
-     * @param $type
+     * Filearea for this plugin
+     *
+     * @return string[]
+     */
+    public static function get_fileareas() {
+        return static::get_basic_fileareas()
+            + array_values(multichoicegrid_docs::DOCUMENT_TYPE_SHORTNAMES);
+    }
+    /**
+     * File manager options
+     *
+     * @param string $type
      * @return string[]
      */
     public static function file_manager_options($type) {
-        return self::FILEPICKER_OPTIONS[$type];
+        return self::FILEMANAGER_OPTIONS[$type];
     }
 }

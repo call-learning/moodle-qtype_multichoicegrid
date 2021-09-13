@@ -50,4 +50,8 @@ $string['option:1'] = 'A';
 $string['option:2'] = 'B';
 $string['option:3'] = 'C';
 $string['option:4'] = 'D';
-
+$string['startnumbering'] = 'Start numbering';
+$string['partsheader'] = 'Parts';
+$string['parts'] = 'Parts {no}';
+$string['partstart'] = 'Index from';
+$string['partname'] = 'Part name';

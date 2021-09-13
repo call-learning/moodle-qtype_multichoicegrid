@@ -36,7 +36,9 @@ require_once($CFG->dirroot . '/question/type/multichoicegrid/tests/helper.php');
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multichoicegrid_question_test extends basic_testcase {
-
+    /**
+     * Test get summary
+     */
     public function test_get_question_summary() {
         $testhelper = test_question_maker::get_test_helper('multichoicegrid');
         $dd = test_question_maker::make_question('multichoicegrid');
@@ -44,6 +46,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $dd->get_question_summary());
     }
 
+    /**
+     * Test summarize response
+     */
     public function test_summarise_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -54,6 +59,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $dd->summarise_response($response));
     }
 
+    /**
+     * Test clear wrong from response
+     */
     public function test_clear_wrong_from_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -65,6 +73,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $dd->clear_wrong_from_response($response));
     }
 
+    /**
+     * Test num parts right
+     */
     public function test_get_num_parts_right() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -78,6 +89,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
         $this->assertEquals(array(10, 10), $dd->get_num_parts_right($response));
     }
 
+    /**
+     * Test expected data
+     */
     public function test_get_expected_data() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -87,7 +101,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $dd->get_expected_data()
         );
     }
-
+    /**
+     * Test correct response
+     */
     public function test_get_correct_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -96,6 +112,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $dd->get_correct_response());
     }
 
+    /**
+     * Test is same response
+     */
     public function test_is_same_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -126,6 +145,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $differentresponse));
     }
 
+    /**
+     * Test is complete response
+     */
     public function test_is_complete_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -143,6 +165,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $fullresponse));
     }
 
+    /**
+     * Test is gradable response
+     */
     public function test_is_gradable_response() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);
@@ -167,6 +192,9 @@ class qtype_multichoicegrid_question_test extends basic_testcase {
             $fullresponse));
     }
 
+    /**
+     * Test grading
+     */
     public function test_grading() {
         $dd = test_question_maker::make_question('multichoicegrid');
         $dd->start_attempt(new question_attempt_step(), 1);

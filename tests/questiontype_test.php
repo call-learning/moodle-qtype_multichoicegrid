@@ -39,14 +39,23 @@ class qtype_multichoicegrid_test extends basic_testcase {
     /** @var qtype_multichoicegrid instance of the question type class to test. */
     protected $qtype;
 
+    /**
+     * Test name
+     */
     public function test_name() {
         $this->assertEquals($this->qtype->name(), 'multichoicegrid');
     }
 
+    /**
+     * Test analyse response
+     */
     public function test_can_analyse_responses() {
         $this->assertTrue($this->qtype->can_analyse_responses());
     }
 
+    /**
+     * Setup
+     */
     protected function setUp() {
         $this->qtype = question_bank::get_qtype('multichoicegrid');
     }

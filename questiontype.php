@@ -22,11 +22,12 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use qtype_multichoicegrid\multichoice_docs;
+use qtype_multichoicegrid\multichoicegrid_docs;
+use qtype_multichoicegrid\multichoicegrid_parts;
 use qtype_multichoicegrid\utils;
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 require_once($CFG->libdir . '/questionlib.php');
 
 /**
@@ -41,6 +42,12 @@ class qtype_multichoicegrid extends question_type {
 
     // Override functions as necessary from the parent class located at
     // /question/type/questiontype.php.
+    /**
+     * Save question options
+     *
+     * @param object $question
+     * @return object|void
+     */
     public function save_question_options($question) {
         // The feedback are supposed to be editor, but to speed up the page rendering, we will use plain
         // text fields. This means we will need to create mock editor structure.
@@ -53,40 +60,9 @@ class qtype_multichoicegrid extends question_type {
         $question->feedback = $feedbacks;
         $this->save_question_answers($question);
         $this->save_hints($question);
-        // Remove all existing docs before adding the new ones.
 
-        foreach (multichoice_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
-            foreach ($question->$area as $index => $file) {
-                $doctext = $question->{$area . 'name'}[$index] ?? "";
-                $docforthisquestion = \qtype_multichoicegrid\multichoice_docs::get_record(
-                    array('questionid' => $question->id, 'type' => $type, 'sortorder' => $index)
-                );
-                $currentdraftcontent = file_get_drafarea_files($question->{$area}[$index]);
-                // Do not add the file if the content is empty.
-                if (!empty($currentdraftcontent->list)) {
-                    if (empty($docforthisquestion)) {
-                        $docforthisquestion = new multichoice_docs(0, (object) [
-                            'type' => $type,
-                            'name' => $doctext,
-                            'sortorder' => $index,
-                            'questionid' => $question->id
-                        ]);
-                        $docforthisquestion->create();
-                    } else {
-                        $docforthisquestion->set('name', $doctext);
-                        $docforthisquestion->update();
-                    }
-
-                    // Make sure we delete file that is saved under the same index.
-                    $fs = get_file_storage();
-                    $fs->delete_area_files($question->context->id,
-                        'qtype_multichoicegrid', $area, $docforthisquestion->get('id'));
-                    file_save_draft_area_files($file, $question->context->id,
-                        'qtype_multichoicegrid', $area, $docforthisquestion->get('id'),
-                        utils::file_manager_options($area));
-                }
-            }
-        }
+        $this->save_documents($question);
+        $this->save_parts($question);
         // This will flattern the structure regarding the combined feedback.
         if (empty($question->options)) {
             $question->options = new stdClass();
@@ -96,7 +72,6 @@ class qtype_multichoicegrid extends question_type {
             $question->$itemname = $value;
         }
         parent::save_question_options($question);
-
     }
 
     /**
@@ -114,9 +89,17 @@ class qtype_multichoicegrid extends question_type {
             'incorrectfeedback',
             'incorrectfeedbackformat',
             'shownumcorrect',
+            'startnumbering'
         );
     }
 
+    /**
+     * Move files
+     *
+     * @param int $questionid
+     * @param int $oldcontextid
+     * @param int $newcontextid
+     */
     public function move_files($questionid, $oldcontextid, $newcontextid) {
         $fs = get_file_storage();
 
@@ -130,14 +113,28 @@ class qtype_multichoicegrid extends question_type {
         }
     }
 
+    /**
+     * Initialise question instance
+     *
+     * @param question_definition $question
+     * @param object $questiondata
+     * @throws coding_exception
+     */
     protected function initialise_question_instance(question_definition $question, $questiondata) {
         parent::initialise_question_instance($question, $questiondata);
         $this->initialise_question_answers($question, $questiondata, false);
         $this->initialise_question_hints($question, $questiondata);
         $this->initialise_combined_feedback($question, $questiondata);
-        multichoice_docs::add_document_data($question);
+        multichoicegrid_docs::add_data($question);
+        multichoicegrid_parts::add_data($question);
     }
 
+    /**
+     * Delete files
+     *
+     * @param int $questionid
+     * @param int $contextid
+     */
     protected function delete_files($questionid, $contextid) {
         $fs = get_file_storage();
 
@@ -150,4 +147,66 @@ class qtype_multichoicegrid extends question_type {
         }
     }
 
+    /**
+     * Save documents
+     *
+     * @param object $question
+     * @throws \core\invalid_persistent_exception
+     * @throws coding_exception
+     */
+    protected function save_documents($question) {
+        foreach (multichoicegrid_docs::DOCUMENT_TYPE_SHORTNAMES as $type => $area) {
+            foreach ($question->$area as $index => $filedraftareaid) {
+                $doctext = $question->{$area . 'name'}[$index] ?? "";
+                $docforthisquestion = \qtype_multichoicegrid\multichoicegrid_docs::get_record(
+                    array('questionid' => $question->id, 'type' => $type, 'sortorder' => $index)
+                );
+                $currentdraftcontent = file_get_drafarea_files($question->{$area}[$index]);
+                // Do not add the file if the content is empty.
+                if (!empty($currentdraftcontent->list)) {
+                    if (empty($docforthisquestion)) {
+                        $docforthisquestion = new multichoicegrid_docs(0, (object) [
+                            'type' => $type,
+                            'name' => $doctext,
+                            'sortorder' => $index,
+                            'questionid' => $question->id
+                        ]);
+                        $docforthisquestion->create();
+                    } else {
+                        $docforthisquestion->set('name', $doctext);
+                        $docforthisquestion->update();
+                    }
+
+                    // Make sure we delete file that is saved under the same index.
+                    $fs = get_file_storage();
+                    $fs->delete_area_files($question->context->id,
+                        'qtype_multichoicegrid', $area, $docforthisquestion->get('id'));
+                    file_save_draft_area_files($filedraftareaid, $question->context->id,
+                        'qtype_multichoicegrid', $area, $docforthisquestion->get('id'),
+                        utils::file_manager_options($area));
+                }
+            }
+        }
+    }
+
+    /**
+     * Save parts information
+     *
+     * @param object $question
+     */
+    protected function save_parts($question) {
+        if ($question->id) {
+            global $DB;
+            // First delete all existing parts for this question.
+            $DB->delete_records(multichoicegrid_parts::TABLE, array('questionid' => $question->id));
+            foreach ($question->parts as $index => $partdef) {
+                $part = new stdClass();
+                $part->questionid = $question->id;
+                $part->start = $partdef['partstart'];
+                $part->name = $partdef['partname'];
+                $questionpart = new multichoicegrid_parts(0, $part);
+                $questionpart->create();
+            }
+        }
+    }
 }

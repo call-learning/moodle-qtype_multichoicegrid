@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qtype_multichoicegrid';
 $plugin->release = '0.1.0';
-$plugin->version = 2021082402;
+$plugin->version = 2021082404;
 $plugin->requires = 2020061500;
 $plugin->maturity = MATURITY_ALPHA;

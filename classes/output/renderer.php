@@ -36,6 +36,10 @@ defined('MOODLE_INTERNAL') || die();
  *
  * You should override functions as necessary from the parent class located at
  * /question/type/rendererbase.php.
+ *
+ * @package     qtype_multichoicegrid
+ * @copyright   2021 Laurent David <laurent@call-learning.fr>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class renderer extends qtype_with_combined_feedback_renderer {
 
@@ -61,6 +65,12 @@ class renderer extends qtype_with_combined_feedback_renderer {
         return $this->render(new multichoicegrid_question($qa, $options, $truefalsedisplayinfo));
     }
 
+    /**
+     * Render specific feedback
+     *
+     * @param question_attempt $qa
+     * @return string
+     */
     public function specific_feedback(question_attempt $qa) {
         return $this->combined_feedback($qa);
     }

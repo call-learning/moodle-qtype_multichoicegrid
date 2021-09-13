@@ -25,7 +25,8 @@
 namespace qtype_multichoicegrid\output;
 
 use moodle_url;
-use qtype_multichoicegrid\multichoice_docs;
+use qtype_multichoicegrid\multichoicegrid_docs;
+use qtype_multichoicegrid\multichoicegrid_parts;
 use qtype_multichoicegrid\utils;
 use question_attempt;
 use question_display_options;
@@ -41,43 +42,92 @@ defined('MOODLE_INTERNAL') || die();
  *
  * You should override functions as necessary from the parent class located at
  * /question/type/rendererbase.php.
+ *
+ * @package     qtype_multichoicegrid
+ * @copyright   2021 Laurent David <laurent@call-learning.fr>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class multichoicegrid_question implements renderable, templatable {
 
     /**
-     * @var question_attempt
+     * @var question_attempt $qa
      */
     private $qa;
 
     /**
-     * @var question_display_options
+     * @var question_display_options $options
      */
-    private question_display_options $options;
+    private $options;
 
-    private array $truefaldisplayoptions;
+    /**
+     * @var array $truefaldisplayoptions with information on how to display true or false response.
+     */
+    private $truefaldisplayoptions;
 
+    /**
+     * Constructor
+     *
+     * @param question_attempt $qa
+     * @param question_display_options $options
+     * @param array $truefaldisplayoptions
+     */
     public function __construct(question_attempt $qa, question_display_options $options, array $truefaldisplayoptions) {
         $this->qa = $qa;
         $this->options = $options;
         $this->truefaldisplayoptions = $truefaldisplayoptions;
     }
 
+    /**
+     * Export to template context
+     *
+     * @param renderer_base $output
+     * @return stdClass
+     * @throws \coding_exception
+     */
     public function export_for_template(renderer_base $output) {
         $data = new stdClass();
         $question = $this->qa->get_question();
+        $data->questiontext = $question->questiontext;
         $data->audiofiles = $this->get_document_info('audio');
         $data->pdffiles = $this->get_document_info('document');
-        $data->possibleanswers = [];
+        $possibleanswers = [];
         for ($i = 1; $i <= utils::OPTION_COUNT; $i++) {
-            $data->possibleanswers[] = get_string('option:' . $i, 'qtype_multichoicegrid');
+            $possibleanswers[] = get_string('option:' . $i, 'qtype_multichoicegrid');
         }
-        $data->questions = [];
-        $index = 1;
+        $questionstartnum = $question->startnumbering;
+
+        $parts = multichoicegrid_parts::get_records(['questionid' => $question->id], 'start', 'ASC');
+        $data->parts = [];
+        if ($parts) {
+            foreach (array_values($parts) as $index => $part) {
+                $data->parts[] = (object) [
+                    'partid' => $part->get('id'),
+                    'label' => $part->get('name'),
+                    'questions' => [],
+                    'possibleanswers' => $possibleanswers,
+                    'isactive' => $index > 0 ? false : true
+                ];
+            }
+        } else {
+            $data->parts[] = (object) [
+                'partid' => 0,
+                'label' => '',
+                'questions' => [],
+                'possibleanswers' => $possibleanswers,
+                'isactive' => true
+            ];
+        }
+        $lastindex = 1;
+        if (!empty($parts)) {
+            array_shift($parts);
+        }
+        $nextpart = empty($parts) ? null : array_shift($parts);
+        $currentpartindex = 0;
         foreach ($question->answers as $answerid => $answer) {
             $aquestion = new stdClass();
             $aquestion->answers = [];
             $aquestion->feedback = $answer->feedback;
-            $aquestion->index = $index++;
+            $aquestion->index = $questionstartnum++;
             $answerkey = 'answer' . $answerid;
             $aquestion->id = $this->qa->get_qt_field_name($answerkey);
             $response = $this->qa->get_last_qt_var($answerkey, '');
@@ -101,8 +151,12 @@ class multichoicegrid_question implements renderable, templatable {
             if ($this->options->correctness) {
                 $ananswer->feedbackimage = $this->truefaldisplayoptions[$iscorrect]->image;
             }
-
-            $data->questions[] = $aquestion;
+            $data->parts[$currentpartindex]->questions[] = $aquestion;
+            if ($nextpart && $lastindex > $nextpart->get('start')) {
+                $nextpart = empty($parts) ? null : array_shift($parts);
+                $currentpartindex++;
+            }
+            $lastindex++;
         }
         return $data;
     }
@@ -110,7 +164,6 @@ class multichoicegrid_question implements renderable, templatable {
     /**
      * Returns the URL of the first image or document
      *
-     * @param object $qa Question attempt object
      * @param string $filearea File area descriptor
      * @param int $itemid Item id to get
      * @return string Output url, or null if not found
@@ -128,8 +181,12 @@ class multichoicegrid_question implements renderable, templatable {
                 if ($file->is_directory()) {
                     continue;
                 }
-                $url = moodle_url::make_pluginfile_url($question->contextid, $componentname,
-                    $filearea, "$qubaid/$slot/{$itemid}", '/',
+                $url = moodle_url::make_pluginfile_url(
+                    $file->get_contextid(),
+                    $file->get_component(),
+                    $file->get_filearea(),
+                    "$qubaid/$slot/{$file->get_itemid()}",
+                    $file->get_filepath(),
                     $file->get_filename());
                 return $url->out();
             }
@@ -137,12 +194,19 @@ class multichoicegrid_question implements renderable, templatable {
         return '';
     }
 
+    /**
+     * Get document info for template
+     *
+     * @param string $documenttype
+     * @return array
+     * @throws \coding_exception
+     */
     protected function get_document_info($documenttype) {
         $doccontext = [];
         $question = $this->qa->get_question();
         $docs =
-            multichoice_docs::get_records(array('questionid' => $question->id,
-                'type' => array_flip(multichoice_docs::DOCUMENT_TYPE_SHORTNAMES)[$documenttype]),
+            multichoicegrid_docs::get_records(array('questionid' => $question->id,
+                'type' => array_flip(multichoicegrid_docs::DOCUMENT_TYPE_SHORTNAMES)[$documenttype]),
                 'sortorder');
 
         foreach (array_values($docs) as $index => $doc) {
