@@ -77,6 +77,10 @@
                                     {{#possibleanswers}}
                                         <th class="m-auto">{{.}}</th>
                                     {{/possibleanswers}}
+                                    {{#feedback}}
+                                        <td class="m-auto">
+                                        </td>
+                                    {{/feedback}}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -94,6 +98,11 @@
                                                 {{{feedbackimage}}}
                                             </td>
                                         {{/answers}}
+                                        {{#feedback}}
+                                            <td class="m-auto">
+                                                <button type="button" class="btn btn-info" data-container="body"  data-toggle="popover" data-placement="top" title="{{.}}">?</button>
+                                            </td>
+                                        {{/feedback}}
                                     </tr>
                                 {{/questions}}
                                 </tbody>
@@ -105,3 +114,6 @@
         </div>
     </div>
 </div>
+{{#js}}
+    require(['jquery', 'theme_boost/bootstrap/popover'], function() {});
+{{/js}}

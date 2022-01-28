@@ -60,21 +60,21 @@ class multichoicegrid_question implements renderable, templatable {
     private $options;
 
     /**
-     * @var array $truefaldisplayoptions with information on how to display true or false response.
+     * @var array $displayoptions with information on how to display true or false response.
      */
-    private $truefaldisplayoptions;
+    private $displayoptions;
 
     /**
      * Constructor
      *
      * @param question_attempt $qa
      * @param question_display_options $options
-     * @param array $truefaldisplayoptions
+     * @param array $displayoptions
      */
-    public function __construct(question_attempt $qa, question_display_options $options, array $truefaldisplayoptions) {
+    public function __construct(question_attempt $qa, question_display_options $options, array $displayoptions) {
         $this->qa = $qa;
         $this->options = $options;
-        $this->truefaldisplayoptions = $truefaldisplayoptions;
+        $this->displayoptions = $displayoptions;
     }
 
     /**
@@ -126,7 +126,7 @@ class multichoicegrid_question implements renderable, templatable {
         foreach ($question->answers as $answerid => $answer) {
             $aquestion = new stdClass();
             $aquestion->answers = [];
-            $aquestion->feedback = $answer->feedback;
+            $aquestion->feedback = $this->options->feedback ? $answer->feedback : '';
             $aquestion->index = $questionstartnum++;
             $answerkey = 'answer' . $answerid;
             $aquestion->id = $this->qa->get_qt_field_name($answerkey);
@@ -142,14 +142,14 @@ class multichoicegrid_question implements renderable, templatable {
                 }
                 if ($this->options->correctness) {
                     $isrightvalue = ($response == $answer->answer) ? 1 : 0;
-                    $ananswer->additionalclass = $this->truefaldisplayoptions[$isrightvalue]->additionalclass;
+                    $ananswer->additionalclass = $this->displayoptions[$isrightvalue]->additionalclass;
 
                 }
                 $aquestion->answers[] = $ananswer;
 
             }
             if ($this->options->correctness) {
-                $ananswer->feedbackimage = $this->truefaldisplayoptions[$iscorrect]->image;
+                $ananswer->feedbackimage = $this->displayoptions[$iscorrect]->image;
             }
             $data->parts[$currentpartindex]->questions[] = $aquestion;
             if ($nextpart && $lastindex >= $nextpart->get('start')) {
