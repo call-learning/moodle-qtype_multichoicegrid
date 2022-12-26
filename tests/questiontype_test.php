@@ -56,11 +56,11 @@ class qtype_multichoicegrid_test extends basic_testcase {
     /**
      * Setup
      */
-    protected function setUp() {
+    protected function setUp(): void {
         $this->qtype = question_bank::get_qtype('multichoicegrid');
     }
 
-    protected function tearDown() {
+    protected function tearDown(): void {
         $this->qtype = null;
     }
 }

@@ -22,6 +22,8 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_question\local\bank\question_edit_contexts;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 
