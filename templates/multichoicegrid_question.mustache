@@ -59,10 +59,10 @@
                 {{/audiofiles}}
             </div>
             <div class="pt-3">
-                <ul class="nav nav-pills" id="tab-{{uniqid}}" role="tablist">
+                <ul class="nav nav-tabs" id="tab-{{uniqid}}" role="tablist">
                     {{#parts}}
                         <li class="nav-item" role="presentation">
-                            <a class="nav-link" id="p-{{partid}}-{{uniqid}}-tab" data-toggle="pill" href="#p-{{partid}}-{{uniqid}}" role="tab"
+                            <a class="nav-link {{#isactive}}active{{/isactive}}" id="p-{{partid}}-{{uniqid}}-tab" data-toggle="pill" href="#p-{{partid}}-{{uniqid}}" role="tab"
                                aria-controls="p-{{partid}}-{{uniqid}}" aria-selected="{{#isactive}}true{{/isactive}}{{^isactive}}false{{/isactive}}">{{label}}</a>
                         </li>
                     {{/parts}}
@@ -70,7 +70,7 @@
                 <div class="tab-content" id="tabcontent-{{uniqid}}">
                     {{#parts}}
                         <div class="tab-pane fade {{#isactive}}show active{{/isactive}}" id="p-{{partid}}-{{uniqid}}" role="tabpanel" aria-labelledby="{{partid}}-{{uniqid}}-tab">
-                            <table>
+                            <table class="table table-striped">
                                 <thead>
                                 <tr class="m-auto">
                                     <th class="m-auto">#</th>
